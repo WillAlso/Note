@@ -1,0 +1,40 @@
+﻿一、 视C++为一个语言联邦
+     C++最初名字C with Classes
+     C++是一个多重泛型编程语言、一个同时支持过程模式、面向对象模式、函数形式、泛型形式、元编程形式的语言。
+     C++联邦
+	C：区块、语句、预处理、内置数据类型、数组、指针；缺点：没有模板、没有异常、没有重载。
+	Object-Oriented C++：C with Classses的class、封装、继承、多态、virtual。
+	Template C++：C++泛型编程；
+	STL：template程序库，包含容器、迭代器、算法、函数对象。
+
+    C-like内置类型pass-by-value比pass-by-reference高效，用户自定义构造函数、析构函数，pass-by-reference-to-const更好。
+    如果仅从一条语句的执行来看，pass-by-value确实比pass-by-reference，pass-by-reference需要得到地址值再得到内容，这个过程相当于多了个指向;
+    如果从处理比较多的数据来看，pass-by-reference更快，pass-by-reference直接对原始数据进行操作
+
+----------------------------------------
+二、尽量以const、enum、inline替换define
+    使用define会使调试时，编译器不能将变量名记入记号表，因此使用const可以。
+    1. 定义常量指针：
+	const char* const authorName = "Scott";
+	const string m("Scott");
+    2. class专属常量
+       将const定义为static
+    define不重视作用域；不提供任何封装性；
+    旧式编译器不支持static在声明式上获得初值，可以在实现文件中赋值；
+    enum可以完成数组初始大小设定：
+	1. 取const地址合法，enum、define不合法；
+	2. const是否导致另外内存分配有编译器决定，enum、define绝不会导致额外内存；
+	3. const只在编译期间保证常量被使用时的不变性，无法保证运行期间的行为；
+	4. const修饰的量不是常量，仅仅是个只读量。在编译的时候全部替换const变量被赋予的值；
+	5. 通过指针修改在全局区上的const变量，编译可通过，运行就会报异常；
+	   通过内存(指针)可以修改位于栈区的const变量，语法合乎规定，编译运行不会报错；
+	   通过内存(指针)修改位于静态存储区的的const变量，语法上没有报错，编译不会出错，一旦运行就会报告异常。
+	6. const变量的内存位于栈区或者静态存储区，不在符号表(常量表)。
+    3. define实现宏，并非函数，并且所有实参需要加上小括号，会造成其他错误；
+
+    因此：
+	1. 单纯的常量，最好使用const或enum替换define；
+	2. 类似宏，最好使用inline代替define。
+
+----------------------------------------
+三、尽可能使用const

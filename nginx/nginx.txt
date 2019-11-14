@@ -1,0 +1,46 @@
+nginx信号控制
+	kill -signal pid
+	TERM,INT     fast down
+	QUIT	graceful shutdown
+	HUP	changing configuration, keeping up with a changed time zone, starting new worker processes with a new configuration, graceful shutdown of old worker processes
+	USR1	re-opening log files
+	USR2	upgrading an executable file
+	WINCH	graceful shutdown of worker processes
+
+nginx虚拟主机
+//全局区
+work_process 工作子进程，一般设置为cpu*核数
+Event{
+worker_connection 1024//一个子进程允许1024个连接
+}
+http{
+server1{//虚拟主机段
+//定位，如images目录单独处理，php单独处理
+}
+}
+日志分割
+	每分钟执行 crontab
+	使用kill -USER1 `cat /usr/local/nginx/logs/nginx.pid`
+
+location
+	location [= ~ ~* ^~] patt{}
+	location = patt{} 精准匹配，
+	location patt{} 一般匹配
+	location ~ patt{} 正则匹配
+
+gizp
+	gizp on|off	是否开启gzip
+	gizp_buffers 32 4K|16 8K	缓冲，几块，多大
+	gizp_comp_level [1-9] 压缩级别
+	gzip _disable 正则匹配，什么不压缩
+	gzip_min_length 开始压缩大小
+	gzip_http_vision 1.0|1.1
+	gzip_proxied	 如果请求者代理服务器，如何缓存
+	gzip_types text/plain application/xml
+	gzip_vary on|off 压缩标志
+expires 在nginx中设置过期时间，在location或if中写，
+	格式	expires 20s;
+		expires 30m;
+		expires 1d;
+负载均衡
+	

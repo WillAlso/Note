@@ -1,0 +1,9 @@
+#include <iostream>
+#define MAX(a,b) f((a) > (b) ? (a) : (b))
+using namespace std;
+const int c= 9;
+int main()
+{
+    int a = 5,b = 0;
+    cout MAX(++a);
+}

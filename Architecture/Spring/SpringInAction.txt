@@ -461,4 +461,137 @@ Spring默认禁用注解装配，可以使用<context:annotation-config>启用�
       @Autowired
       @StringedInstrument
       private Instrument instrument;
-      当装配instrument
+      当装配instrument，Spring回答所有可选择的Bean缩小到只有@StringedInstrument注解所标注的Bean。
+      如果使用@StringedInstrument注解的Bean有多个，需要进一步缩小范围，可以定义另一种注解@Strummed。
+--------------------
+      @Target({ElementType.FIELD,ElementType.PARAMETER,ElementType.TYPE})
+      @Retention(RstentionPolicy.RUNTIME)
+      @Qualifier
+      public @interface Strummed{}
+
+      @Autowired
+      @StringedInstrument
+      @Strummed
+      private Instrument instrument;
+--------------------
+      Spring的@Autowired注解是减少Spring XML注解的一种方式，但是使用它的类会引入对Spring的特定依赖，解决方法：@Inject。
+--------------------
+  2. 借助@Inject实现基于标准的自动装配
+    编程模型：JSR-330或at inject，通用依赖注入模型。
+    @Inject是JSR-330的核心部件，几乎可以完全替代@Autowired注解。
+    @Inject可以用来自动装配属性、方法、构造器，但是没有required属性，因此它的注解标注的依赖关系必须存在，如果不存在抛出异常。
+    JSR-330另一种技巧：注入一个Provider，Provider接口可以实现Bean引用的延迟注入以及注入Bean的多个实例。
+    ---------------
+    //Knife Bean作用域声明prototype
+    private Set<Knife> knives;
+    @Inject
+    public KnifeJuggler(Provicer<Knife> knifeProvider){
+      knives = new HashSet<Knife>();
+      for (int i = 0; i < 5; i++) {
+        knives.add(knifeProvider.get());
+      }
+    }
+    ---------------
+    限定@Inject所标注的属性
+      @Inject所对应为@Name注解，类似于Spring的@Qualifier。
+      @Inject
+      @Name("guitar")
+      private Instrument instrument;
+      @Qualifier缩小匹配Bean选择范围，@Name通过Bean的ID标识可选择Bean。
+    创建自定义的JSR-330 Qualifier
+      JSR-330有自己的@Qualifier注解，但是不建议使用，可以使用创建自定义限定器注解。
+      ---------------
+      //这里import的是javax.inject.Qualifier而非Spring中的
+      @Target({ElementType.FIELD,ElementType.PARAMETER,ElementType.TYPE})
+      @Retention(RstentionPolicy.RUNTIME)
+      @Qualifier
+      public @interface StringedInstrument{}
+      ---------------
+--------------------
+  3. 在注解注入中使用表达式
+    @Value可以注解装配String类型的值和基本类型的值。
+    可以使用@Value直接标注某个属性、方法或者方法参数。
+    搭配SpEL：
+    @Value("#{systemProties.myFavoriteSong}")
+    private String song;
+------------------------------
+三、自动检测Bean
+<context:annotation-config>特殊对待注解，有助于完全消除<property>和<consructor-arg>，但仍需要使用<bean>显式定义Bean。
+<context:component-scan>除了完成与<context:annotation-config>一样的工作，允许Spring自动检测Bean和定义Bean。
+<context:component-scan>元素会自动扫描指定的包及其所有子包，并查找出能够自动注册为Spring Bean类。base-package标识了<context:component-scan>元素所扫描的包。
+---------------
+1. 为自动检测标注Bean
+  默认情况下，<context:component-scan>查找使用构造型（stereotype）注解所标注的类，特殊注解如下：
+    @Component 通用的构造型注解，标识该类为Spring组件
+    @Controller 标识将该类定义为Spring MVC controller
+    @Repository 标识将该类定义为数据仓库
+    @Service 标识将该类定义为服务
+    使用@Component标注的任意自定义注解
+  使用@Component注解标注
+    @Component
+    public class Guitar implements Instrument {
+      public void play(){
+        //...
+      }
+    }
+  Spring扫描com.springinaction.springidol包时，会发现@Component注解所标注的Guitar，并自动注册为Spring Bean。
+---------------
+2. 过滤组件扫描
+  <context:component-scan>可以配置<context:include-filter>和/或者<context:exclude-filter>子元素，调整扫描行为。
+  <context:component-scan>自动注册所有实现Instrument接口的类：
+    <context:component-scan
+      base-package="com.springinaction.springidol">
+      <context:include-filter type="assignable"
+        expression="com.springinaction.springidol.Instrument"/>
+    </context:component-scan>
+    五种过滤器类型：
+    annotation	过滤器扫描使用指定注解所标注的那些类，通过expression属性指定要扫描的注解
+    assignable	扫描派生于expression属性所指定类型的那些类
+    aspectj	扫描与expression属性所指定的AspectJ表达式所匹配的那些类
+    custom	使用自定义的org.springframework.core.type.TypeFilter实现类，该类由expression属性指定
+    regex	过滤器扫描类的名称与expression属性所指定的正则表达式所匹配的那些类
+--------------------
+四、使用Spring基于Java的配置
+基于Java拥有一些XML所不具有的技巧。
+---------------
+1. 创建基于Java的配置
+  仍需要使用XML启动Java配置。
+---------------
+2. 定义一个配置类
+  使用@Configuration注解Java类，相当于XML的<beans>元素。
+---------------
+3. 定义一个简单的Bean
+  @Bean相当于<bean>，返回一个对象，在XML中，Bean的类型和ID都是由String属性来标识，String标识符缺点：无法编译时检查；
+  但是基于Java配置，没有String属性，Bean的ID和类型都被视为方法签名的一部分，Bean的实际创建是在方法体中定义的，所以编译期可以检查Bean的类型是合法类型，并且Bean的ID是唯一的。
+---------------
+4. 使用Spring的基于Java的配置进行注入
+  实现依赖注入一个值，直接把数字传入构造器中：
+    @Bean
+    public Performer duke(){
+      return new Jugler(15);
+    }
+  setter注入
+    @Bean
+    public Perform kenny(){
+      Instrumentalist kenny = new Instrumentalist();
+      kenny.setSong("Jingle Bells");
+      return kenny;
+    }
+  装配另一个Bean的引用
+    @Bean
+    private Poem sonnet29(){
+      return new Sonnet29();
+    }
+    @Bean
+    public Performer poeticDuke(){
+      return new PoeticJuggler(sonnet29());
+    }
+    通过声明方法引用Bean并不等同于调用该方法，会告知Spring将方法注册进Spring的应用上下文，当引用时，会拦截方法，尝试上下文查找该Bean。
+--------------------
+五、小结
+  Spring的XML冗长是缺点，提供消除Xml配置的方式：
+    使用自动装配代替<property>和<constructor-arg>
+    组件检测自动处理整个<bean>
+    使用Java代替Spring配置
+--------------------chapter 4 面向切面的Spring--------------------
+

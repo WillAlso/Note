@@ -212,4 +212,253 @@ session		在一个HTTP Session中，每个Bean定义对应一个实例，该作�
 global-session	在一个全局HTTP Session中，每个Bean定义对应一个实例，该作用域仅在Portlet上下文中才有效
 ----------------------------------------
 5. 初始化和销毁Bean
+  初始化init-method
+  销毁destroy-method
+----------------------------------------
+<bean id="auditor" class="com.whut.Auditor"
+  init-method="turnOnLights"
+  destory-method="turnOffLights"/>
+----------------------------------------
+  另一种让Bean实现Spring的InitializingBean和DisposableBean接口，InitializingBean声明一个afterPropertiesSet()方法作为初始化方法，DisposableBean声明一个destroy()方法，在Bean从应用上下文移除时被调用，优点：Spring自动检测实现了这些接口的Bean，无需额外配置；缺点：Bean与Spring的API产生了耦合。
+  默认的init-method和destroy-method
+    <beans default-init-method="" default-destroy-method=""></beans>
+--------------------
+二、注入Bean属性
+  以setter方式注入。
+  1. 注入简单值
+    <bean id="" class="">
+      <property name="" value=""/>
+    </bean>
+    设置数字和String并没有什么不同。
+  2. 引用其他Bean
+    <property name="" ref=""/>
+    注入内部Bean(inner bean)
+      <bean id="" class="">
+        <property name=">
+	  <bean class="">
+	</property>
+      </bean>
+      每个bean拥有独立唯一属于自己的内部bean。
+      内部Bean不仅限于setter注入，可以构造方法注入；
+        <bean id="" class="">
+	  <constructor-arg value=""/>
+	  <constructor-arg>
+	    <bean class=""/>
+	  </constructor-arg>
+	</bean>
+      内部Bean没有ID属性，因此缺点：不能复用，内部Bean仅限于一次注入，而且不能被其他Bean所引用。
+  3. 使用Spring的命名空间p装配属性
+    <beans xmlns:p="http://www.springframework.org/schema/p">
+    <bean id="" class=""
+      p:song=""
+      p:instrument-ref=""/>
+  4. 装配集合
+    <list>	装配list类型的值，允许重复
+    <set>	装配set的值，不允许重复
+    <map>	装配map类型的值，名称和值可以是任意类型
+    <props>	装配properties的值，名称和值必须是String
+    装配数组或者java.util.Collection，<list>和<set>；
+    装配java.util和java.util.Properties，<map>和<props>；
+    如装配Collection<Instrument> instrument;
+      <bean id="hank" class="">
+        <property name="instruments">
+	  <list>
+	    <ref bean="guitar">
+	    <ref bean="cymbal">
+	    <ref bean="harmonica">
+	  </list>
+	</property>
+      </bean>
+    这里<ref>用来定义Spring上下文中的其他Bean引用，还可以使用<value>、<bean>和<null/>，可以包含另一个<list>形成多维列表。可以使用<set>配置java.util.List。
+    装配Map集合
+      Map<String,Instrument> instrument;
+      <bean id="" class="">
+        <property name="">
+	  <map>
+	    <entry key="" value-ref="">
+	  </map>
+	</property>
+      </bean>
+      <key>	指定键为String
+      <key-ref>	为Spring上下文引用
+      <value>	值为String
+      <value-ref> 值为Spring上下文引用
+      当键和值都不是String类型时，唯一方法使用<map>元素。
+      装配Properties集合
+        当Map的每个entry的键和值都为String类型时，可以考虑使用java.util.Properties代替Map。
+	Properties instruments;
+	<bean id="" class="">
+	  <property name="instrument">
+	    <props>
+	      <prop key="GUITAR">Strum</prop>
+	    </props>
+	  </property>
+	</bean>
+        <property>元素用于把值或Bean引用注入Bean的属性中；
+	<props>用于定义一个java.util.Properties类型的集合值；
+	<prop>用于定义一个<props>集合的一个成员。
+  5. 装配空值
+    <property name=""><null/></property>
+--------------------
+三、使用表达式装配
+  Spring表达式语言(Spring Expression Language, SpEL)，特性：
+    使用Bean的ID来引用Bean
+    调用方法和访问对象的属性
+    对值进行算术、关系和逻辑运算
+    正则表达式匹配
+    集合操作
+  1. SpEL的基本原理
+    字面值
+      #{}界定符装配
+      <property name="" value="#{5}"/>
+      <property name="" value="#{1e4}"/>
+      代表10000.0
+      String可以使用单引号或双引号
+      <property name="" value="#{'chunk'}"/>
+    引用Bean、Properties和方法
+      <property name="" value="#{saxophone}"/>
+      将ID为sacophone的Bean装配；
+      <bean id="carl" class="">
+        <property name="song" value="#{kenny.song}"/>
+      </bean>
+      <property name="song" value="#{kenny.selectSong().toUpperCase()}"/>
+      若为空，SpEL会抛出空指针异常，解决方法：使用null-safe存取器
+        <property name="song" value="#{song.selectSong()?.toUpperCase()}"/>
+    操作类
+      T()会调用类作用域的方法和常量；
+      <property name="pi" value="#{T(java.lang.Math).PI}"/>
+      <property name="random" value="#{T(java.lang.Math).random()"}/>
+  2. 在SpEL值上执行操作
+    数值运算
+      Java的所有基础算符运算符，^表示乘方；
+    比较值
+      等于	eq
+      小于	lt
+      小于等于	le
+      大于	gt
+      大于等于	ge
+    逻辑表达式
+      and、or、not或!
+    条件表达式
+      ?:为elvis
+      <property name=""
+        value="#{kenny.song != null ? kenny.song:'Green'}"/>
+      <property name="" value="#{kenny.song?:'Green'}"/>
+    正则表达式
+      <property name="validEamil" value="#{admin.email matches '[]}"/>
+  3. 在SpEL中筛选集合
+    public class City{
+      private String name;
+      private String state;
+      private int population;
+      //setter and getter
+    }
+    <util:list id="cities">
+      <bean class="com.City"
+        p:name="Chi" p:state="IL" p:population="1234"/>
+      <bean class="com.City"
+        p:name="New" p:state="TX" p:population="3214"/>
+    </util:list>
+    创建了java.util.List
+    访问集合成员
+      <property name="chose" value="#{cities[2]}"/>
+    <util:properties id="settings"
+      location="classpath:setting.properties"/>
+      加载了名为settings.properties的文件
+    两种特殊的选择属性的方式：systemEnvironment和systemProperties
+    查询集合成员
+      <property name="bigCities" value="#{cities.?[population gt 10000]}"/>
+      .?[]查询
+      .^[]查询第一个匹配
+      .$[]查询最后一个匹配
+    投影集合
+      .![]从集合的每一个成员中选择特定的属性放入一个新的集合中
+      <property name="cityName"
+        value="#{cities.?[population gt 10000].![name + "," + state]}"/>
+--------------------
+四、小结
+  Spring容器是核心，BeanFactory是最简单的容器，提供基础的依赖注入和Bean装配服务，更高级可以ApplicationContext；
+  Spring容器装配Bean的方式XML文件、自动装配和注解。
 
+--------------------chapter 3 最小化Spring XML配置--------------------
+自动装配（autowiring）：有助于减少甚至消除配置<property>和<constructor-arg>，让Spring自动识别如何装配Bean的依赖关系；
+自动检测（autodiscovery）：比上者更近一步，让Spring能够自动识别哪些类需要被配置为Spring Bean，减少对<bean>的使用。
+--------------------
+一、自动装配Bean属性
+  1. 4种类型的自动装配
+    byName
+      把与Bean的属性具有相同名字或者ID的其他Bean自动装配到Bean的对应属性中，如果没有，不装配。
+    byType
+      把与Bean的属性具有相同类型的其他Bean自动装配到Bean的对应属性中，如果没有跟属性的类型相匹配的Bean，则不被装配。
+    constructor
+      把与Bean的构造器入参具有相同类型的其他Bean自动装配到Bean构造器的对应入参中。
+    autodetect
+      首先尝试constructor进行自动装配，如果失败，再尝试使用byType进行自动装配。
+    byName自动装配
+      <bean id="instrument" class=""/>
+      <bean id="kenny" class="" autowire="byName">
+        <property name="song" value="Hello"/>
+	<!--这里intrument同名，可以直接装配-->
+      </bean>
+      为属性自动装配ID与该属性的名字相同的Bean，通过设置autowire为byName，寻找与其属性名字相同的Spring Bean，这里instrument使用setter进行注入；
+      缺点：需要假设Bean的名字与其他Bean的属性的名字一样。
+    byType自动装配
+      Spring会寻找哪一个Bean的类型与属性的类型相匹配。
+      局限性：如果找到多个，会抛出异常；解决方法：
+        标识一个首选Bean：primary属性为true（默认为true）；
+	排除某些Bean，autowire-candidate为false。
+    constructor自动装配
+      new一个新的，如果一个类有多个构造器，它们都满足自动装配，不会尝试；
+    最佳自动装配
+      autodetect
+      首先尝试constructor，再尝试byType。
+  2. 默认自动装配
+    <beans default-autowire="byType">
+    </beans>
+    默认情况为none，Spring配置文件中所有Bean，但不是Spring应用上下文的所有Bean，可以在应用上下文定义多个配置文件。
+  3. 混合使用自动装配和显示装配
+    自动装配，仍可以显示装配；
+    当使用constructor自动装配时，必须让Spring自动装配构造器所有的入参，不能混合使用contructor和<constructor-arg>。
+--------------------
+二、使用注解装配
+Spring默认禁用注解装配，可以使用<context:annotation-config>启用。
+自动装配注解：
+  Spring自带的@Autowired注解；
+  JSR-330的@Inject注解；
+  JSR-250的@Resource注解。
+  1. 使用@Autowired
+    希望使用@Autowired装配，可以使用setter，在setter方法上使用；
+    标注setter、需要Bean引用的任意方法、构造器；
+    setter使用byType匹配，构造器表示当创建Bean时，及时没有<constructot-arg>也需要自动装配；
+    @Autowired可以直接标注属性，并删除setter方法；
+    两种阻碍工作情景：
+      应用中必须只能有一个Bean适合装配到@Autowired注解所标注的属性或参数中；
+      如果没有匹配的Bean或者存在多个匹配的Bean，会出错。
+    可选的自动装配
+      属性不一定非要装配，null值也是可以接受的。使用：
+        @Autowired(required=false)
+      尝试装配该属性，但是如果没有查找到与之匹配的类型，就会设置为null；
+      但是当使用构造器装配，只有一个构造器可以将@Autowired的required属性设置为true，其他只能为false，使用@Autowired标注多个构造器，Spring会从所有满足条件的构造器选择入参最多的那个。
+    限制歧义性的依赖
+      @Qualifier配合判断哪一个Bean才是需要的。缩小匹配范围。
+      @Autowired
+      @Aualifier("guitar")
+      private Instrument instrument;
+      也可以
+      <bean class="">
+        <qualifier value="stringed"/>
+      </bean>
+      还可以
+      @Qualifier("stringed")
+      public class Guitar implements Instrument{}
+    创建自定义的限定器（Qualifier）
+      @Target()
+      @Retention(RetentionPolicy.RUNTIME)
+      @Qualifier
+      public @interface StringedInstrument{
+      }
+      可以使用@StringedInstrument对自动装配的instrument进行限定；
+      @Autowired
+      @StringedInstrument
+      private Instrument instrument;
+      当装配instrument

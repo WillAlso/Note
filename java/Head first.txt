@@ -580,4 +580,378 @@ Java 5中stub不需要产生：RMI和动态代理搭配使用，动态代理产�
 8. 代理会造成设计类数目增加。
 -----------------------------------
 --------------------chapter 12 复合模式 模式的模式--------------------
+复合模式在一个解决方案中结合两个或多个模式，已解决一般或重复发生的问题。
+----------鸭子模拟器----------
+1. 首先，创建Quackable接口；
+  public interface Quackable{
+    public void quack();
+  }
+2. 某些鸭子实现Quackable接口；
+  public class MallarDuck implements Quackable{
+    public void quack(){
+      System.out.println("Quack");
+    }
+  }
+  public class RedheadDuck implements Quackable{
+    public void quack(){
+      System.out.println("Quack");
+    }
+  }
+3. 模拟鸭叫模拟器
+  public class DuckSimulator{
+  }
+4. 当鸭子出现，鹅在附近。
+  public class Goose{
+    public void honk(){
+      System.out.println("Honk");
+    }
+  }
+5. 鹅适配器
+  public class GooseAdapter implements Quackable {
+    Goose goose;
+    public GooseAdapter(Goose goose){
+      this.goose = goose;
+    }
+    public void quack(){
+      goose.honk();
+    }
+  }
+6. 使用模拟器模拟鹅和鸭
+  public class DuckSimulator{
+    public static void main(String[] args){
+      DuckSimulator simulator = new DuckSimulator();
+      simulator.simulate();
+    }
+    void simulate(){
+      Quackable duck1 = new Mallarduck();
+      Quackable duck2 = new RedheadDuck();
+      Quackable duck3 = new DuckCall();
+      Quackable duck4 = new RubberDuck();
+      Quackable goose = new GooseAdapter(new Goose());
+      //invoke simulate
+    }
+    void simulate(Quackable duck){
+      duck.quack();
+    }
+  }
+8. 计算叫声的次数
+  装饰者模式
+  public class QuackCounter implemets Quackable{
+    Quackable duck;
+    static int numberOfQuacks;
+    public QuackCounter(Quackable duck){
+      this.duck = duck;
+    }
+    public void quack(){
+      duck.quack();
+      numberOfQuacks++;
+    }
+    public static int getQuacks(){
+      return numberOfQuacks;
+    }
+  }
+9. 需要修改模拟器创建装饰者
+  这里直接将DuckSimulator中new Quackable修改为new QuackCounter。
+10. 工厂模式产生鸭子
+  public abstract class AbstractDuckFactory{
+    public abstract Quackable createMallardDuck();
+    public abstract Quackable createRedheadDuck();
+    public abstract Quackable createDuckCall();
+    public abstract Quackable createRubberDuck();
+  }
+  public class DuckFactory extends AbstractDuckFactory{
+    public Quackable createMallardDuck(){
+      return new MallardDuck();
+    }
+    public Quackable createRedheadDuck(){
+      return new RedheadDuck();
+    }
+    public Quackable createDuckCall(){
+      return new DuckCall();
+    }
+    public Quackable createRubberDuck(){
+      return new RubberDuck();
+    }
+  }
+  创建真正的工厂：
+  public class CountingDuckFactory extends AbstractDuckFactory{
+    public Quackable createMallardDuck(){
+      return new QuackCounter(new MallardDuck());
+    }
+    public Quackable createRedheadDuck(){
+      return new Quackable(new RedheadDuck());
+    }
+    public Quackable createDuckCall(){
+      return new Quackable(new DuckCall());
+    }
+    public Quackable createRubberDuck(){
+      return new Quackable(new RubberDuck());
+    }
+  }
+11. 模拟器使用工厂
+  public class DuckSimulator{
+    public static void main(String[] args){
+      DuckSimulator simulator = new DuckSimulator();
+      AbstractDuckFactory duckFactory = new CountingDuckFactory();
+      simulate.simulate(duckFactory);
+    }
+    void simulate(AbstractDuckFactory duckFactory){
+      Quackable duck1 = duckFactory.createMallardDuck();
+      Quackable duck2 = duckFactory.createRedheadDuck();
+      Quackable duck3 = duckFactory.createDuckCall();
+      Quackable duck4 = duckFactory.createRubberDuck();
+      Quackable goose = new GooseAdapter(new Goose());
+      //invoke next simulate method
+    }
+    void simulate(Quackable duck){
+      duck.quack();
+    }
+  }
+12. 管理一群鸭子
+  public class Flock implemets Quackable{
+    ArrayList quakers = new ArrayList();
+    public void add(Quackable quacker){
+      quakers.add(quacker);
+    }
+    public void quack(){
+      Iterator iterator = quackers.iterator();
+      while(iterator.hasNext()){
+        Quackable quacker = (Quackable)iterator.next();
+	quacker.quack();
+      }
+    }
+  }
+13. 修改模拟器
+  只需要
+  Flock flockDuck = new Flock();
+  flockDuck.add(/*duck*/);
+  即可
+14. 需要Observable接口
+  监视鸭子
+  Observable 需要注册和通知观察者的方法：
+  public interface QuackObservable{
+    public void registerObserver(Observer observer);
+    public void notifyObservers();
+  }
+  public interface Quackable extends QuackObservable{
+    public void quack();
+  }
+15. 现在我们必须确定所有实现Quackable的具体类都能够扮演QuackObservable的角色。
+  public class Observable implements QuackObservable{
+    ArrayList observers = new ArrayList();
+    QuackObservable duck;
+    public Observable(QuackObservable duck){
+      this.duck = duck;
+    }
+    public void registerObserver(Observer observer){
+      Interator iterator = observer.iterator();
+      while(iterator.hasNext()){
+        Observer observer = (Observer)iterator.next();
+	observer.update(duck);
+      }
+    }
+  }
+16. 整合Observable辅助类和Quackable类
+  public class MallarDuck implements Quackable{
+    Observable observable;
+    public MallarDuck(){
+      observable = new Observable(this);
+    }
+    public void quack(){
+      System.out.println("Quack");
+      notifyObservers();
+    }
+    public void registerObserver(Observer observer){
+      observer.registerObserver(observer);
+    }
+    public void notifyObservers(){
+      observable.notifyObservers();
+    }
+  }
+17. 实现Observer
+  public interface Observer{
+    public void update(QuackObservable duck);
+  }
+  public class Quacklogist implements Observer{
+    public void update(QuackObservable duck){
+      System.out.println("Quacklogist: " + duck + " just quacked.");
+    }
+  }
+18. 观察鸭子行为
+  Quacklogist quacklogist = new Quacklogist();
+  //一群鸭子
+  flockDuck.registerObserver(quacklogist);
+----------问题----------
+1. 复合模式不单单是一群模式携手合作，是指一群模式被结合起来使用，以解决一般性问题。
+2. 复合模式不是遇到问题逐一解决。
+------------------------
+以上使用模式：
+  适配器模式：想要适配鹅；
+  装饰者模式：追踪鸭子叫次数；
+  工厂模式：产生装饰者鸭子；
+  迭代器模式：方便管理多个鸭子；
+  观察者模式：监视鸭子叫。
+--------------------MVC--------------------
+视图：用来呈现模型，视图通常直接从模型中取得他需要显示的状态与数据。
+控制器：取得用户的输入并解读其对模型的意思。
+模型：模型持有所有的数据、状态和程序逻辑，模型没有注意到视图和控制器，虽然它提供了操纵和检索状态的接口，并发送状态改变通知给观察者。
+步骤	发出者	接受者	动作
+1	视图	控制器	用户做某件事
+2	控制器	模型	改变状态
+3	控制器	视图	改变显示
+4	模型	视图	通知视图模型改变
+7	视图	模型	我需要你的状态信息
+----------解释----------
+用户——和视图交互
+  视图是模型的窗口，当用户对视图做些事，视图会告诉控制器做了什么，控制器负责处理；
+控制器要求模型改变状态
+  控制器解读用户动作，按下按钮，控制器理解这个动作意义，并告知模型作何动作；
+控制器也可能要求视图改变
+  当控制器从视图接收到某一动作，结果可能是它也需要知道视图改变及其结果。
+当模型改变时，模型会通知视图
+  只要当模型内的东西改变时，模型就会通知视图它的状态改变了。
+视图向模型询问状态
+  视图直接从模型取得它的显示状态。当控制器请求视图改变时，视图也可能向模型询问某些状态。
+----------问题----------
+控制器可以变成模型的观察者吗？
+  可以，某些设计中，控制器会向模型注册，模型已有改变就通知控制器。
+控制器做的事情不只有将操作发送给模型，还会解读输入，并根据输入操纵模型，但至于为什么不放进视图中：
+  A. 会让视图代码变得复杂，因为这样会让视图有两个责任，管理用户界面和控制模型的逻辑；
+  B. 将会造成模型和视图之间紧耦合，如果想复用此视图来处理其他模型是不可能的，控制器将视图和模型分离，使设计更有弹性更容易扩展。
+-------------------------
+看待MVC
+  1. 模型利用“观察者”让控制器和视图之间可以随最新的状态改变而更新；另一方面，视图和控制器则实现了“策略模式”。控制器是视图的行为，如果不希望有这样的行为，可以直接换一个控制器，试图内部使用组合模式来管理窗口，按钮以及其他显示组件。
+  2. 视图和控制器的策略模式：
+    A. 视图是一个对象，可以被调整为使用不同的策略，而控制器提供了策略。
+    B. 视图只关心系统中可视的部分，对于任何界面行为，都委托给控制器处理。
+    C. 使用策略模式也可以让视图和模型之间的关系解耦，因为控制器负责和模型交互来传递用户的请求。
+  3. 组合：视图是GUI组件的组合。
+-------------------------
+实例：利用MVC控制节拍
+  控制器了解了视图的行为，然后使用Model的方法。
+  ----------
+  创建碎片
+  public interface BeatModelInterface{
+    //控制器调用，对模型处理
+    void initialize();
+    void on();
+    void off();
+    void setBPM();
+    //允许视图和控制器取得状态，并变成观察者
+    int getBPM();
+    void registerObserver(BeatObserver o);
+    void removeObserver(BeatObserver o);
+    void registerObserver(BPMObserver o);
+    void removeObserver(BPMObserver o);
+  }
+  具体BeatModel类
+  public class BeatModel implements BeatModelInterface,MetaEventListener{
+    Sequencer sequencer;
+    ArrayList beatObservers = new ArrayList();
+    ArrayList bpmObservers = new ArrayList();
+    int bpm = 90;
+    //下面实现方法
+  }
+  实现视图
+  public class DJView implements ActionListener,BeatObserver, BPMObserver{
+    BeatModelInterface model;
+    ControllerInterface controller;
+    //swing组件
+    public void actionPerformed(ActionEvent event){
+      if(event.getSource() == setBPMButton){
+        controller.setBPM(bpm);
+      }
+      //其他监视事件
+    }
+  }
+  实现控制器
+  public interface ControllerInterface{
+    void start();
+    void stop();
+    void increaseBPM();
+    void decreaseBPM();
+    void setBPM(int bpm);
+  }
+  public class BeatController implements ControllerInterface{
+    BeatModelInterface model;
+    DJView view;
+    public BeatController(BeatModelInterface model){
+      this.model = model;
+      //initialize view
+      model.initialize();
+    }
+    public void start(){
+      model.on();
+      view.disableStartMenuItem();
+    }
+    //stop(), increaseBPM(), descreaseBPM(), setBPM()
+  }
+--------------------
+探索策略
+  HeartModel
+    getHeartRate()
+    registerBeatObserver()
+    registerBPMObserver()
+  为了能让复用之前视图和HeartModel搭配：
+适配模式
+  MVC技巧：使用适配器将模型适配成符合现有视图和控制器的需要的模型。
+  public class HeartAdapter implements BeatModelInterface{
+    HeartModelInterface heart;
+    public HeartAdapter(HeartModelInterface heart){
+      this.heart = heart;
+    }
+    public initialize(){}
+    public void on(){}
+    public void off(){}
+    public int getBPM(){
+      return heart.getHeartRate();
+    }
+    //setBPM
+    public void registerObserver(BeatObserver o){
+      heart.registerObserver(o);
+    }
+    //removeObserver
+    public void registerObserver(BPMObserver o){
+      heart.registerObserver(o);
+    }
+    //removeObserver
+  }
+  然后实现HeartController
+  public class HeartController implements ControllerInterface{
+    HeartModelInterface model;
+    DJView view;
+    public HeartController(HeartModelInterface model){
+      this.model = model;
+      //初始化view
+    }
+    public void start(){}
+    //stop increserBPM decreaseBPM setBPM
+  }
+--------------------
+MVC与Web
+步骤	发送方		接收方		动作
+1	客户		servlet/控制器	HTTP请求
+2	servlet/控制器	bean		实例化
+3	servlet/控制器	jsp/视图
+4	bean		jsp/视图
+5	jsp/视图	客户		HTTP响应
+  1. 客户发送一个会被Servlet收到的HTTP请求
+  2. Servlet扮演控制器
+    处理客户请求，通常会向模型（数据库）发送请求，处理结果以Bean形式打包
+  3. 控制器将控制权交给视图
+    视图就是JSP，JSP唯一工作就是产生界面，表现模型的视图
+  4. 视图通过HTTP将页面返回浏览器
+    页面返回浏览器，作为视图显示出来，客户提出进一步请求，以同样的方式处理
+--------------------
+设计手机DJ程序
+  1. 修正模型（模型）
+    模型对视图和控制器一无所知，完全解耦，模型只知道有一些观察者需要通知。
+  2. 创建Servlet控制器（控制器）
+    处理Web请求
+  3. 创建HTML视图（视图）
+    jsp界面
+Model2的观察者模式：
+  这里没有向模型注册接受状态以改变通知，当模型改变时，视图可以间接地从控制器收到相当于通知的东西，控制器把Bean送给视图，如果考虑B/S模式，视图在HTTP响应返回到浏览器时只需要一个状态信息的更新，随时的通知是没有意义的，只有当页面被创建和返回时，创建视图并结合模型状态才有意义。
+  也就是说，视图的更新并不是在每次模型状态改变时，而是有页面请求时，视图从控制器接受通知。
+  
 

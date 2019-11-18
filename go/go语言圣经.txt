@@ -82,3 +82,511 @@ func main() {
   10. initialization语句是可选的，在循环开始前执行。initalization如果存在，必须是一条简单语句（simple statement），即，短变量声明、自增语句、赋值语句或函数调用。 condition 是一个布尔表达式（boolean expression），其值在每次循环迭代开始时计算。如果为 true 则执行循环体语句。 post 语句在循环体执行结束后执行，之后再次对 condition 求值。 condition 值为 false 时，循环结束。
   11. for循环的这三个部分每个都可以省略，如果省略 initialization 和 post ，分号也可以省略。
   12. for 循环的另一种形式, 在某种数据类型的区间（range）上遍历。
+********************
+package main
+
+import (
+	"fmt"
+	"os"
+)
+
+func main() {
+	s, sep := "", ""
+	for _, arg := range os.Args[1:] {
+		s += sep + arg
+		sep = " "
+	}
+	fmt.Println(s)
+}
+********************
+  13. 每次循环迭代，range 产生一对值；索引以及在该索引处的元素值。这个例子不需要索引，但 range 的语法要求, 要处理元素, 必须处理索引。Go语言不允许使用无用的局部变量（local variables），因为这会导致编译错误。
+  14. Go语言中这种情况的解决方法是用 空标识符 （blank identifier），即 _ （也就是下划线）。空标识符可用于任何语法需要变量名但程序逻辑不需要的时候。
+  15.声明变量：
+    s := ""
+    var s string
+    var s = ""
+    var s string = ""
+    第一种形式，是一条短变量声明，最简洁，但只能用在函数内部，而不能用于包变量。
+    第二种形式依赖于字符串的默认初始化零值机制，被初始化为""。
+    第三种形式用得很少，除非同时声明多个变量。
+    第四种形式显式地标明变量的类型，当变量类型与初值类型相同时，类型冗余，但如果两者类型不同，变量类型就必须了。
+  16. += 连接原字符串，如果连接涉及的数据量很大，这种方式代价高昂。简单且高效的解决方案：
+    **********
+    fmt.Println(strings.Join(os.Args[1:], " "))
+    **********
+--------------------
+1.3 查找重复的行
+打印重复的行
+********************
+
+********************
+  1. map存储了键/值（key/value）的集合，对集合元素，提供常数时间的存、取或测试操作。键可以是任意类型，只要其值能用 == 运算符比较，最常见的例子是字符串；值则可以是任意类型。
+  2. 内置函数 make 创建空 map 。
+  3. map 的迭代顺序并不确定，从实践来看，该顺序随机，每次运行都会变化。
+------------------------------
+  Why：映射的“顺序”取决于所使用的哈希函数。 哈希函数被随机化，以防止使用哈希冲突的拒绝服务攻击。
+------------------------------
+  4. Scanner读取输入并将其拆成行或单词；通常是处理行形式的输入最简单的方法。
+  5. Printf转换
+    %d		十进制整数
+    %x, %o, %b	十六进制，八进制，二进制整数
+    %f, %g, %e	浮点数：3.141593 3.141592653589793 3.141593e+00
+    %t	    	布尔：true或false
+    %c		字符（rune）（Unicode码点）
+    %s		字符串
+    %q		带双引号的字符串"abc"或带单引号的字符'c'
+    %v		变量的自然形式（natural format）
+    %T		变量的类型
+    %%		字面上的百分号标志（无操作数）
+    以字母 f 结尾的格式化函数，如 log.Printf 和 fmt.Errorf
+********************
+// dup
+package main
+
+import (
+	"bufio"
+	"fmt"
+	"os"
+)
+
+func main() {
+	counts := make(map[string]int)
+	files := os.Args[1:]
+	if len(files) == 0 {
+		countLines(os.Stdin, counts)
+	} else {
+		for _, arg := range files {
+			f, err := os.Open(arg)
+			if err != nil {
+				fmt.Fprintf(os.Stderr, "dup2: %v\n", err)
+				continue
+			}
+			countLines(f, counts)
+			f.Close()
+		}
+	}
+	for line, n := range counts {
+		if n > 1 {
+			fmt.Printf("%d\t%s\n", n, line)
+		}
+	}
+}
+
+func countLines(f *os.File, counts map[string]int) {
+	input := bufio.NewScanner(f)
+	for input.Scan() {
+		counts[input.Text()]++
+	}
+}
+********************
+  6. os.Open 函数返回两个值。第一个值是被打开的文件( *os.File ），其后被 Scanner 读取。返回的第二个值是内置 error 类型的值。如果 err 等于内置值 nil，那么文件被成功打开。
+  7. map 是一个由 make 函数创建的数据结构的引用。 map 作为为参数传递给某函数时，该函数接收这个引用的一份拷贝。被调用函数对 map 底层数据结构的任何修改，调用者函数都可以通过持有的 map 引用看到。
+********************
+// dup
+package main
+
+import (
+	"fmt"
+	"io/ioutil"
+	"os"
+	"strings"
+)
+
+func main() {
+	counts := make(map[string]int)
+	for _, filename := range os.Args[1:] {
+		data, err := ioutil.ReadFile(filename)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "dup3: %v\n", err)
+		}
+		for _, line := range strings.Split(string(data), "\n") {
+			counts[line]++
+		}
+	}
+	for line, n := range counts {
+		if n > 1 {
+			fmt.Printf("%d\t%s\n", n, line)
+		}
+	}
+}
+********************
+  8. ReadFile 函数返回一个字节切片（byte slice），必须把它转换为 string ，才能用 strings.Split 分割。
+  9. bufio.Scanner 、 ioutil.ReadFile 和 ioutil.WriteFile 都使用 *os.File 的 Read 和 Write 方法
+--------------------
+1.4 GIF动画
+********************
+package main
+
+import (
+	"image"
+	"image/color"
+	"image/gif"
+	"io"
+	"math"
+	"math/rand"
+	"os"
+	"time"
+)
+
+var palette = []color.Color{color.White, color.Black}
+
+const (
+	whiteIndex = 0
+	blackIndex = 1
+)
+
+func main() {
+	rand.Seed(time.Now().UTC().UnixNano())
+	lissajous(os.Stdout)
+}
+
+func lissajous(out io.Writer) {
+	const (
+		cycles  = 5
+		res     = 0.001
+		size    = 100
+		nframes = 64
+		delay   = 8
+	)
+	freq := rand.Float64() * 3.0
+	anim := gif.GIF{LoopCount: nframes}
+	phase := 0.0
+	for i := 0; i < nframes; i++ {
+		rect := image.Rect(0, 0, 2*size+1, 2*size+1)
+		img := image.NewPaletted(rect, palette)
+		for t := 0.0; t < cycles*2*math.Pi; t += res {
+			x := math.Sin(t)
+			y := math.Sin(t*freq + phase)
+			img.SetColorIndex(size+int(x*size+0.5), size+int(y*size+0.5), blackIndex)
+		}
+		phase += 0.1
+		anim.Delay = append(anim.Delay, delay)
+		anim.Image = append(anim.Image, img)
+	}
+	gif.EncodeAll(out, &anim)
+}
+********************
+--------------------
+1.5 获取URL
+********************
+// fetch
+package main
+
+import (
+	"fmt"
+	"io/ioutil"
+	"net/http"
+	"os"
+)
+
+func main() {
+	for _, url := range os.Args[1:] {
+		resp, err := http.Get(url)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "fetch: %v\n", err)
+			os.Exit(1)
+		}
+		b, err := ioutil.ReadAll(resp.Body)
+		resp.Body.Close()
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "fetch: reading %s: %v\n", url, err)
+			os.Exit(1)
+		}
+		fmt.Printf("%s", b)
+	}
+}
+********************
+  1. 函数调用io.Copy(dst, src)会从src中读取内容，并将读到的结果写入到dst中，这个函数替代掉例子中的ioutil.ReadAll来拷贝响应结构体到os.Stdout，避免申请一个缓冲区（例子中的b）来存储。
+  ***************
+  _, err = io.Copy(os.Stdout, resp.Body)
+  if err != nil {
+  fmt.Fprintf(os.Stderr, "fetch: reading %s: %v\n", url, err)
+    os.Exit(1)
+  }
+  resp.Body.Close()
+  ***************
+  2. strings.HasPrefix判断前缀；
+  3. 可以从resp.Status变量得到该状态码。
+--------------------
+1.6 并发获取多个URL
+********************
+// fetchall
+package main
+
+import (
+	"fmt"
+	"io"
+	"io/ioutil"
+	"net/http"
+	"os"
+	"time"
+)
+
+func main() {
+	start := time.Now()
+	ch := make(chan string)
+	for _, url := range os.Args[1:] {
+		go fetch(url, ch)
+	}
+	for range os.Args[1:] {
+		fmt.Println(<-ch)
+	}
+	fmt.Printf("%.2fs elapsed\n", time.Since(start).Seconds())
+}
+
+func fetch(url string, ch chan<- string) {
+	start := time.Now()
+	resp, err := http.Get(url)
+	if err != nil {
+		ch <- fmt.Sprint(err)
+		return
+	}
+	nbytes, err := io.Copy(ioutil.Discard, resp.Body)
+	resp.Body.Close()
+	if err != nil {
+		ch <- fmt.Sprintf("while reading %s: %v", url, err)
+		return
+	}
+	secs := time.Since(start).Seconds()
+	ch <- fmt.Sprintf("%.2fs %7d %s", secs, nbytes, url)
+}
+********************
+  1. goroutine是一种函数的并发执行方式，而channel是用来在goroutine之间进行参数传递。
+  2. go function则表示创建一个新的goroutine，并在这个新的goroutine中执行这个函数。
+  3. io.Copy会把响应的Body内容拷贝到ioutil.Discard输出流中，这个变量看作一个垃圾桶，每当请求返回内容时，fetch函数都会往ch这个channel里写入一个字符串，由main函数里的第二个for循环来处理并打印channel里的这个字符串。
+  4. 每一个fetch函数在执行时都会往channel里发送一个值(ch <- expression)，主函数负责接收这些值(<-ch)。这个程序中我们用main函数来接收所有fetch函数传回的字符串，可以避免在goroutine异步执行还没有完成时main函数提前退出。
+--------------------
+1.7 Web服务
+********************
+// server1
+package main
+
+import (
+	"fmt"
+	"log"
+	"net/http"
+)
+
+func main() {
+	http.HandleFunc("/", handler)
+	log.Fatal(http.ListenAndServe("localhost:8000", nil))
+}
+
+func handler(w http.ResponseWriter, r *http.Request) {
+	fmt.Fprintf(w, "URL.Path = %q\n", r.URL.Path)
+}
+********************
+添加访问次数
+// server1
+package main
+
+import (
+	"fmt"
+	"log"
+	"net/http"
+	"sync"
+)
+
+var mu sync.Mutex
+var count int
+
+func main() {
+	http.HandleFunc("/", handler)
+	http.HandleFunc("/count", counter)
+	log.Fatal(http.ListenAndServe("localhost:8000", nil))
+}
+
+func handler(w http.ResponseWriter, r *http.Request) {
+	mu.Lock()
+	count++
+	mu.Unlock()
+	fmt.Fprintf(w, "URL.Path = %q\n", r.URL.Path)
+}
+
+func counter(w http.ResponseWriter, r *http.Request) {
+	mu.Lock()
+	fmt.Fprintf(w, "Count %d\n", count)
+	mu.Unlock()
+}
+********************
+  1. 代码里的mu.Lock()和mu.Unlock()调用将修改count的所有行为包在中间的目的。
+********************
+func handler(w http.ResponseWriter, r *http.Request) {
+	fmt.Fprintf(w, "%s %s\n", r.Method, r.URL, r.Proto)
+	for k, v := range r.Header {
+		fmt.Fprintf(w, "Head[%q]\n", k, v)
+	}
+	fmt.Fprintf(w, "Host = %q\n", r.Host)
+	fmt.Fprintf(w, "RemoteAddr = %q\n", r.RemoteAddr)
+	if err := r.ParseForm(); err != nil {
+		log.Print(err)
+	}
+	for k, v := range r.Form {
+		fmt.Fprintf(w, "Form[%q] = %q\n", k, v)
+	}
+}
+********************
+  2. 用if和ParseForm结合可以让代码更加简单，并且可以限制err这个变量的作用域。
+  3. 字符串转换为数字可以调用strconv.Atoi函数。
+--------------------
+1.8 本章要点
+  1. switch结构：
+  ***************
+  switch coinflip() {
+  case "heads":
+    heads++
+  case "tails":
+    tails++
+  default:
+    fmt.Println("landed on edge!")
+  }
+  ***************
+  2. Go语言里的switch还可以不带操作对象，可以直接罗列多种条件：
+  ***************
+  switch {
+  case x > 0:
+    return +1
+  default:
+    return 0
+  case x < 0:
+    return -1
+  }
+  ***************
+  3. 命名类型： 类型声明使得我们可以很方便地给一个特殊类型一个名字。
+  ***************
+  type Point struct {
+    X, Y int
+  }
+  ***************
+  4. 指针： Go语言提供了指针。指针是一种直接存储了变量的内存地址的数据类型。
+    在其它语言中，比如C语言，指针操作是完全不受约束的。在另外一些语言中，指针一般被处理为“引用”，除了到处传递这些指针之外，并不能对这些指针做太多事情。Go语言在这两种范围中取了一种平衡。指针是可见的内存地址，&操作符可以返回一个变量的内存地址，并且*操作符可以获取指针指向的变量内容，但是在Go语言里没有指针运算，也就是不能像c语言里可以对指针进行加或减操作
+  5. 方法和接口： 方法是和命名类型关联的一类函数。
+  6. 包（packages）： Go语言提供了一些很好用的package，并且这些package是可以扩展的。
+  7. 注释：在源文件的开头写的注释是这个源文件的文档。
+-------------------------chapter 2 程序结构-------------------------
+--------------------
+2.1 命名
+  命名规则：一个名字必须以一个字母（Unicode字母）或下划线开头，后面可以跟任意数量的字母、数字或下划线。
+  关键字：
+  break		default		func	interface	select
+  case		defer		go	map		struct
+  chan		else		goto	package		switch
+  const		fallthrough	if	range		type
+  continue	for		import	return		var
+  预定义名字：
+  内建常量：
+    true false iota nil
+  内建类型：
+    int int8 int16 int32 int64
+    uint uint8 uint16 uint32 uint64 uintptr
+    float32 float64 complex128 complex64
+    bool byte rune string error
+  内建函数：
+    make len cap new append copy close delete
+    complex real imag
+    panic recover
+  这些内部预先定义的名字并不是关键字，你可以在定义中重新使用它们。
+  1. 如果一个名字是在函数内部定义，那么它的就只在函数内部有效。如果是在函数外部定义，那么将在当前包的所有文件中都可以访问。
+  2. 名字的开头字母的大小写决定了名字在包外的可见性。如果一个名字是大写字母开头的，那么它将是导出的，也就是说可以被外部的包访问，包本身的名字一般总是用小写字母。
+  3. 名字的长度没有逻辑限制。
+--------------------
+2.2 声明
+  1. 声明语句定义了程序的各种实体对象以及部分或全部的属性。Go语言主要有四种类型的声明语句：var、const、type和func，分别对应变量、常量、类型和函数实体对象的声明。
+  2. 每个源文件以包的声明语句开始，说明该源文件是属于哪个包。包声明语句之后是import语句导入依赖的其它包，然后是包一级的类型、变量、常量、函数的声明语句，包一级的各种类型的声明语句的顺序无关紧要。
+  3. 一个函数的声明由一个函数名字、参数列表、一个可选的返回值列表和包含函数定义的函数体组成。如果函数没有返回值，那么返回值列表是省略的。执行函数从函数的第一个语句开始，依次顺序执行直到遇到return返回语句，如果没有返回语句则是执行到函数末尾，然后返回到函数调用者。
+  4. func fToC(f float64) float64{}
+--------------------
+2.3 变量
+  var 变量名字 类型 = 表达式
+  1. 其中“类型”或“= 表达式”两个部分可以省略其中的一个。如果省略的是类型信息，那么将根据初始化表达式来推导变量的类型信息。如果初始化表达式被省略，那么将用零值初始化该变量。
+  2. 数值类型变量对应的零值是0，布尔类型变量对应的零值是false，字符串类型对应的零值是空字符串，接口或引用类型（包括slice、指针、map、chan和函数）变量对应的零值是nil。数组或结构体等聚合类型对应的零值是每个元素或字段都是对应该类型的零值。
+  3. 在Go语言中不存在未初始化的变量。
+  4. 可以在一个声明语句中同时声明一组变量，或用一组初始化表达式声明并初始化一组变量。如果省略每个变量的类型，将可以声明多个类型不同的变量：
+  **********
+  var i, j, k int
+  var b, f, s = true, 2.3, "four"
+  **********
+  5. 一组变量也可以通过调用一个函数，由函数返回的多个返回值初始化:
+  **********
+  var f, err = os.Open(name)
+  **********
+  A. 简短变量声明
+  可用于声明和初始化局部变量，“名字:= 表达式”形式声明变量，变量的类型根据表达式来自动推导
+  简短变量声明语句也可以用来声明和初始化一组变量：
+  i, j := 0, 1
+  简短变量声明语句也可以用函数的返回值来声明和初始化变量。
+  **********
+  f, err := os.Open(name)
+  if err != nil {
+    return err
+  }
+  f.Close()
+  **********
+  简短变量声明左边的变量可能并不是全部都是刚刚声明的，如果有一些已经在相同的词法域声明过了，对这些已经声明过的变量就只有赋值行为了。
+  简短变量声明语句中必须至少要声明一个新的变量。
+  简短变量声明语句只有对已经在同级词法域声明过的变量才和赋值操作语句等价，如果变量是在外部词法域声明的，那么简短变量声明语句将会在当前词法域重新声明一个新的变量。
+  B. 指针
+  一个指针的值是另一个变量的地址。一个指针对应变量在内存中的存储位置。
+  并不是每一个值都会有一个内存地址，但是对于每一个变量必然有对应的内存地址。
+  通过指针，我们可以直接读或更新对应变量的值，而不需要知道该变量的名字
+  用法和C相似
+  变量有时候被称为可寻址的值。即使变量由表达式临时生成，那么表达式也必须能接受 & 取地址操作。
+  任何类型的指针的零值都是nil。
+  在Go语言中，返回函数中局部变量的地址也是安全的。
+  //调用f函数时创建局部变量v，在局部变量地址被返回之后依然有效，因为指针p依然引用这个变量。每次调用f函数都将返回不同的结果
+  ********************
+  var p = f()
+  func f() *int {
+    v := 1
+    return &v
+  }
+  ********************
+  如果将指针作为参数调用函数，那将可以在函数中通过该指针来更新变量的值。
+  每次我们对一个变量取地址，或者复制指针，我们都是为原变量创建了新的别名。
+  垃圾回收时，要找到一个变量的所有访问者并不容易，我们必须知道变量全部的别名。
+  不仅仅是指针会创建别名，很多其他引用类型也会创建别名，例如slice、map和chan，甚至结构体、数组和接口都会创建所引用变量的别名。
+  echo的加入命令行参数
+********************
+// echo4
+package main
+
+import (
+	"flag"
+	"fmt"
+	"strings"
+)
+
+var n = flag.Bool("n", false, "omit trailing newline")
+var sep = flag.String("s", " ", "separator")
+
+func main() {
+	flag.Parse()
+	fmt.Print(strings.Join(flag.Args(), *sep))
+	if !*n {
+		fmt.Println()
+	}
+}
+********************
+  flag.Bool会创建一个新的对应布尔型标志参数的变量，三个属性：
+    第一个是命令行标志参数"n"
+    然后默认值false
+    最后标志参数的描述信息
+  如果用户输入无效参数或-h或-help，就打印帮助
+  flag.String将创建一个对应字符串类型的标志参数变量
+  这里都是指向它们的指针
+  flag.Parse，用于更新参数对应变量的值，当解析错误，就调用os.Exit(2)
+  C. new函数
+    new只是一个预定义的函数，调用用内建的new函数，表达式new(T)将创建一个T类型的匿名变量，初始化为T类型的零值，然后返回变量地址，返回的指针类型为 *T 。
+    如果两个类型都是空的，也就是说类型的大小是0，例如 struct{} 和 [0]int , 有可能有相同的地址。
+  D. 变量的生命周期
+    对于在包一级声明的变量来说，它们的生命周期和整个程序的运行周期是一致的。
+    局部变量的声明周期则是动态的：每次从创建一个新变量的声明语句开始，直到该变量不再被引用为止，然后变量的存储空间可能被回收。函数的参数变量和返回值变量都是局部变量。
+    for t := 0.0; t < cycles*2*math.Pi; t += res {
+      x := 1
+      y := 2
+    }
+    在每次循环的开始会创建临时变量t，然后在每次循环迭代中创建临时变量x和y。
+---------------
+如何知道一个变量是何时可以被回收？
+
+---------------

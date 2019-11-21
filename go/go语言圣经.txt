@@ -680,4 +680,603 @@ func FToC(f Fahrenheit) Celsius { return Celsius((f - 32) * 5 / 9) }
   //Celsius类型的参数c出现在了函数名的前面，表示声明的是Celsius类型的一个叫名叫String的方法，该方法返回该类型对象c带着°C温度单位的字符串
   ---------------
   许多类型都会定义一个String方法，因为当使用fmt包的打印方法时，将会优先使用该类型对应的String方法返回的结果打印。
-  
+--------------------
+2.6 包和文件
+  支持模块化、封装、单独编译和代码重用。
+  一个包的源代码保存在一个或多个以.go为文件后缀名的源文件中，通常一个包所在目录路径的后缀是包的导入路径。
+  包还可以让我们通过控制哪些名字是外部可见的来隐藏内部实现信息。如果一个名字是大写字母开头的，那么该名字是导出的。
+  每个源文件都是以包的声明语句开始，用来指明包的名字。
+  包注释的第一句应该先是包的功能概要说明。一个包通常只有一个源文件有包注释
+--------------------
+2.6.1 导入包
+  每个包都是有一个全局唯一的导入路径，导入语句中类似"gopl.io/ch2/tempconv"的字符串对应包的导入路径。Go语言的规范并没有定义这些字符串的具体含义或包来自哪里，它们是由构建工具来解释的。
+  如果导入了一个包，但是又没有使用该包将被当作一个编译错误处理。
+********************
+// cf
+package main
+
+import (
+	"fmt"
+	"os"
+	"strconv"
+
+	"../tempconv"
+)
+
+func main() {
+	for _, arg := range os.Args[1:] {
+		t, err := strconv.ParseFloat(arg, 64)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "cf: %v\n", err)
+			os.Exit(1)
+		}
+		f := tempconv.Fahrenheit(t)
+		c := tempconv.Celsius(t)
+		fmt.Printf("%s = %s, %s = %s\n",
+			f, tempconv.FToC(f), c, tempconv.CToF(c))
+	}
+}
+********************
+--------------------
+2.6.2 包的初始化
+  1. 包的初始化首先是解决包级变量的依赖顺序，然后按照包级变量声明出现的顺序依次初始化：
+  ***************
+  var a = b + c		//a第三个初始化
+  var b = f() 		//b第二个初始化
+  var c = 1		//c第一个初始化
+  func f() int { return c + 1 }
+  ***************
+  如果包中含有多个.go源文件，它们将按照发给编译器的顺序进行初始化，Go语言的构建工具首先会将.go文件根据文件名排序，然后依次调用编译器编译。
+  2. 在包级别声明的变量，如果有初始化表达式则用表达式初始化，还有一些没有初始化表达式的，可以用一个特殊的init初始化函数来简化初始化工作。每个文件都可以包含多个init初始化函数,init初始化函数除了不能被调用或引用外，其他行为和普通函数类似。
+  ***************
+  func init() { /*...*/ }
+  ***************
+  在每个文件中的init初始化函数，在程序开始执行时按照它们声明的顺序被自动调用。
+  3. 每个包在解决依赖的前提下，以导入声明的顺序初始化，每个包只会被初始化一次。如果一个p包导入了q包，那么在p包初始化的时候可以认为q包必然已经初始化过了。初始化工作是自下而上进行的，main包最后被初始化。
+********************
+// popcount
+package popcount
+
+import "fmt"
+
+var pc [256]byte
+
+func init() {
+	for i := range pc {
+		pc[i] = pc[i/2] + byte(i&1)
+	}
+}
+
+func PopCount(x uint64) int {
+	return int(pc[byte(x>>(0*8))] +
+		pc[byte(x>>(1*8))] +
+		pc[byte(x>>(2*8))] +
+		pc[byte(x>>(3*8))] +
+		pc[byte(x>>(4*8))] +
+		pc[byte(x>>(5*8))] +
+		pc[byte(x>>(6*8))] +
+		pc[byte(x>>(7*8))])
+}
+********************
+  将初始化逻辑包装为一个匿名函数处理：
+********************
+var pc [256]byte = func() (pc [256]byte) {
+	for i := range pc {
+		pc[i] = pc[i/2] + byte(i&1)
+	}
+	return
+}()
+********************
+  //循环省略了值部分，因此可以：
+  for i, _ := range pc{}
+  重写PopCount函数，用一个循环代替单一的表达式:
+********************
+func PopCount_Cycle(x uint64) int {
+	n := 0
+	for i := 0; i < 8; i++ {
+		n += int(pc[byte(x>>(i*8))])
+	}
+	return n
+}
+********************
+  用移位算法重写PopCount函数，每次测试最右边的1bit，然后统计总数。
+********************
+func PopCount2(x uint64) int {
+	num := 0
+	for i := 0; x != 0 && i < 64; i, x =  i + 1， x >> 1{
+		if x&1 == 1 {
+			num++
+		}
+	}
+	return num
+}
+********************
+  表达式 x&(x-1) 用于将x的最低的一个非零的bit位清零。
+********************
+func PopCount_Clear(x uint64) int {
+	n := 0
+	for x != 0 {
+		x = x & (x - 1)
+		n++
+	}
+	return n
+}
+********************
+--------------------
+2.7 作用域
+  1. 声明语句的作用域是指源代码中可以有效使用这个名字的范围。
+  2. 不要将作用域和生命周期混为一谈。声明语句的作用域对应的是一个源代码的文本区域；它是一个编译时的属性。一个变量的生命周期是指程序运行时变量存在的有效时间段，在此时间区域内它可以被程序的其他部分引用；是一个运行时的概念。
+  3. 句法块是由花括弧所包含的一系列语句，这些声明在代码中并未显式地使用花括号包裹起来，我们称之为词法块。对全局的源代码来说，存在一个整体的词法块，称为全局词法块；对于每个包；每个for、if和switch语句，也都对应词法块；每个switch或select的分支也有独立的语法块；当然也包括显式书写的词法块（花括弧包含的语句）。
+  4. 对于内置的类型、函数和常量，比如int、len和true等是在全局作用域的，因此可以在整个程序中直接使用。
+  5. 任何在在函数外部声明的名字可以在同一个包的任何源文件中访问的。
+  6. 对于导入的包，则是对应源文件级的作用域，因此只能在当前的文件中访问导入的fmt包，当前包的其它源文件无法访问在当前源文件导入的包。
+  7. 控制流标号，就是break、continue或goto语句后面跟着的那种标号，则是函数级的作用域。
+  8. 一个程序可能包含多个同名的声明，只要它们在不同的词法域就没有关系。
+  9. 内部优先于外部变量声明，如果都没有找到，编译报错。
+  10. for语句创建了两个词法域：花括弧包含的是显式的部分是for的循环体部分词法域，另外一个隐式的部分则是循环的初始化部分；if和switch语句也会在条件部分创建隐式词法域。
+---------------
+if x := f(); x == 0 {
+  //
+} else if y := f(x); x == y {
+}
+---------------
+  11. 如果一个变量或常量递归引用了自身，则会产生编译错误。
+  12. 要特别注意短变量声明语句的作用域范围：
+********************
+var cwd string
+
+func init() {
+	cwd, err := os.Getwd()
+	if err != nil {
+		log.Fatalf("os.Getwd failed: %v", err)
+	}
+}
+********************
+    获取当前工作目录，log.Fatalf用于打印日志信息。
+    := 语句还是将cwd和err重新声明为新的局部变量，内部声明的cwd将屏蔽外部的声明，不会更新cwd。
+    编译器会报错，但是增加一个局部cwd打印语句，检测失效，不报错：
+    --------------------
+    //init()
+    log.Printf("Working directory = %s", cwd)
+    --------------------
+    解决办法：单独声明err变量。
+    --------------------
+    var err error
+    cwd, err = os.Getwd()
+    --------------------
+--------------------chapter 3 基础数据类型--------------------
+  数据类型分为四类：基础类型、复合类型、引用类型和接口类型。
+  基础类型：数字、字符串、布尔型；
+  复合类型：数组、结构体；
+  引用类型：指针、切片、字典、函数、通道；
+--------------------
+3.1 整型
+  有符号整数类型	无符号整型	大小
+  int8		uint8		8
+  int16		uint16		16
+  int32		uint32		32
+  int64		uint64		64
+  一般对应特定CPU平台机器字大小的有符号和无符号整数int和uint。因为不同的编译器即使在相同的硬件平台上可能产生不同的大小，为32bit或者64bit。
+  1. Unicode字符rune类型是和int32等价的类型，通常用于表示一个Unicode码点，可以互换。
+  2. byte也是uint8类型的等价类型，byte类型一般用于强调数值是一个原始的数据而不是一个小的整数。
+  3. 无符号的整数类型uintptr，没有指定具体的bit大小但是足以容纳指针。uintptr类型只有在底层编程时才需要。
+  4. int、uint和uintptr是不同类型的兄弟类型。其中int和int32也是不同的类型，即使int的大小也是32bit，在需要将int当作int32类型的地方需要一个显式的类型转换操作。
+  5. 算术运算、逻辑运算和比较运算的二元运算符优先级递减：
+  * / % << >> & &^
+  + - | ^
+  == != < <= > >=
+  &&
+  ||
+  取模运算符%仅用于整数间的运算，%取模运算符的符号和被取模数的符号总是一致的：
+  -5%3和-5%-3都是-2。
+  整数除法会向着0方向截断余数。算术运算超出的高位的bit位部分将被丢弃。
+  6. 比较符号：
+    == != < <= > >=
+    整数、浮点数和字符串可以根据比较结果排序。
+  7. 一元的加法和减法运算符：
+    对于整数，+x是0+x的简写，-x则是0-x的简写；对于浮点数和复数，+x就是x，-x则是x 的负数。
+  8. bit位运算符
+    &	位运算AND
+    |	位运算OR
+    ^	位运算XOR
+    &^	位清空（AND NOT）
+    <<	左移
+    >>	右移
+********************
+	var x uint8 = 1<<1 | 1<<5
+	var y uint8 = 1<<1 | 1<<2
+	fmt.Printf("%08b\n", x)
+	fmt.Printf("%08b\n", y)
+	fmt.Printf("%08b\n", x&y)
+	fmt.Printf("%08b\n", x|y)
+	fmt.Printf("%08b\n", x^y)
+	fmt.Printf("%08b\n", x&^y)
+	for i := uint(0); i < 8; i++ {
+		if x&(1<<i) != 0 {
+			fmt.Println(i)
+		}
+	}
+	fmt.Printf("%08b\n", x<<1)
+	fmt.Printf("%08b\n", x>>1)
+********************
+  %08b中08表示打印至少8个字符宽度，不足的前缀部分用0填充。
+  9. 有符号数的右移运算会用符号位的值填充左边空缺的bit位，无符号数的右移运算也是用0填充左边空缺的bit位。
+  10. 无符号数往往只有在位运算或像bit集合、分析二进制文件格式或者是哈希和加密操作等。
+  算术和逻辑运算的二元操作中必须是相同的类型：
+  ********************
+  //编译错误
+  var a int32 = 1
+  var b int32 = 2
+  var c int = a + b
+  ********************
+  可以显示转换类型。
+  11. 许多整数之间的相互转换并不会改变数值；它们只是告诉编译器如何解释这个值，对于将一个大尺寸的整数类型转为一个小尺寸的整数类型，可能会改变数值或丢失精度。
+  12 %d、%o或%x控制进制格式：
+  ********************
+  o := 0666
+  //438 666 0666
+  fmt.Printf("%d %[1]o %#[1]o\n", o)
+  x := int64(0xdeadbeef)
+  fmt.Printf("%d %[1]x %#[1]x %#[1]X\n", x)
+  //3735928559 deadbeef 0xdeadbeef 0XDEADBEEF
+  ********************
+  %之后的 [1] 副词告诉Printf函数再次使用第一个操作数。第二，%后的 # 副词告诉Printf在用%o、%x或%X输出时生成0、0x或0X前缀。
+  13. 字符面值通过一对单引号直接包含对应字符，字符使用 %c 参数打印，或者是用 %q 参数打印带单引号的字符：
+  ********************
+  ascii := 'a'
+  unicode := '国'
+  fmt.Printf("%d %[1]c %[1]q\n", ascii) // "97 a 'a'"
+  fmt.Printf("%d %[1]c %[1]q\n", unicode) // "22269 国 '国'"
+  fmt.Printf("%d %[1]q\n", newline) // "10 '\n'"
+  ********************
+--------------------
+3.2 浮点数
+ 两种精度浮点数：float32和float64，由IEEE754浮点数国际标准定义。
+ 1. 常量math.MaxFloat32表示float32能表示的最大数值，大约是 3.4e38；
+ 2. 对应的math.MaxFloat64常量大约是1.8e308。对应的math.MaxFloat64常量大约是1.8e308。它们分别能表示的最小值近似为1.4e-45和4.9e-324。
+ 3. float32提供大约6个十进制的精度，float64提供约15个十进制数的精度。
+ 4. float32的有效bit位只有23个：
+ ********************
+ var f float32 = 16777216 // 1 << 24
+ fmt.Println(f == f+1) // "true"!
+ ********************
+ 很小或很大可以用科学技术法表示e或E
+ 5. %g参数打印浮点数，将采用更紧凑的表示形式打印，并提供足够的精度，对应表格的数据，使用%e（带指数）或%f的形式打印可能更合适。
+ 6. math包提供了IEEE754浮点数标准中定义的特殊值的创建和测试：正无穷大和负无穷大，分别用于表示太大溢出的数字和除零的结果；NaN非数，一般用于表示无效的除法操作结果0/0或Sqrt(-1)。
+ ********************
+ var z float64
+ fmt.Println(z, -z, 1/z, -1/z, z/z) // "0 -0 +Inf -Inf NaN"
+ ********************
+ 7. math.IsNaN用于测试一个数是否是非数NaN，NaN、正无穷大和负无穷大都不是唯一的，每个都有非常多种的bit模式表示。
+--------------------
+3.3 复数
+  1. complex64和complex128，分别对应float32和float64两种浮点数精度。
+  2. 内置的complex函数用于构建复数，内建的real和imag函数分别返回复数的实部和虚部
+  3. 如果一个浮点数面值或一个十进制整数面值后面跟着一个i，构成虚部
+  4. 一个复数常量可以加到另一个普通数值常量，也可以用==和!=进行相等比较。
+  5. math/cmplx包提供了复数处理的许多函数。
+--------------------
+3.4 布尔型
+  1. true和false，短路行为：如果运算符左边值已经可以确定整个布尔表达式的值，那么运算符右边的值将不再被求值，下面是安全的：
+  s != "" && s[0] == 'x'
+  2. && 的优先级比 || 高。
+  3. 布尔值并不会隐式转换为数字值0或1。
+--------------------
+3.5 字符串
+  1. 一个字符串是一个不可改变的字节序列，可以包含任意的数据，包括byte值0，文本字符串通常被解释为采用UTF8编码的Unicode码点（rune）序列。
+  2. len函数可以返回一个字符串中的字节数目（不是rune字符数目），索引操作s[i]返回第i个字节的字节值，i必须满足0 ≤ i< len(s)条件约束：
+  3. 第i个字节并不一定是字符串的第i个字符，因为对于非ASCII字符的UTF8编码会要两个或多个字节。
+  4. 子字符串操作s[i:j]生成一个新字符串，+操作符将两个字符串链接构造一个新字符串。
+  5. 字符串可以用==和<进行比较；比较通过逐个字节比较完成的。
+  6. 字符串的值是不可变的：一个字符串包含的字节序列永远不会被改变，当然我们也可以给一个字符串变量分配一个新字符串值。
+  7. 字符串是不可修改的，因此尝试修改字符串内部数据的操作也是被禁止的：
+  s[0]='L'会被禁止。
+  8. 不变性意味如果两个字符串共享相同的底层数据的话也是安全的，这使得复制任何长度的字符串代价是低廉的。一个字符串s和对应的子字符串切片s[7:]的操作也可以安全地共享相同的内存，因此字符串切片操作代价也是低廉的。在这两种情况下都没有必要分配新的内存。
+---------------
+3.5.1 字符串赋值
+  1. 文本字符串也以UTF8编码的方式处理，将Unicode码点也写到字符串面值中。
+  2. 一个十六进制的转义形式是 \xhh ，其中两个h表示十六进制数字（大写或小写都可以）。一个八进制转义形式是 \ooo ，包含三个八进制的o数字（0到7），但是不能超过 \377 （译注：对应一个字节的范围，十进制为255）。
+  3. 原生的字符串使用反引号代替双引号，里面退格、换行都是处理，但是特殊的是删除回车保证所有平台一致。
+---------------
+3.5.2 Unicode
+  1. Unicode码点对应Go语言中的rune整数类型（int32等价类型）。
+  2. 将一个符文序列表示为一个int32序列，这种编码方式叫UTF-32或UCS-4，每个
+Unicode码点都使用同样的大小32bit来表示，浪费很多存储空间。
+---------------
+3.5.3 UTF-8
+  1. UTF8是一个将Unicode码点编码为字节序列的变长编码，使用1到4个字节来表示每个Unicode码点，ASCII部分字符只使用1个字节，常用字符部分使用2或3个字节表示。每个符号编码后第一个字节的高端bit位用于表示总共有多少编码个字节。
+  2. 第一个字节的高端bit为0，则表示对应7bit的ASCII字符；
+  3. 如果第一个字节的高端bit是110，则说明需要2个字节。
+  4. 优点：UTF8编码比较紧凑，完全兼容ASCII码，并且可以自动同步：它可以通过向前回朔最多2个字节就能确定当前字符编码的开始字节的位置。
+  5. 它也是一个前缀编码，所以当从左向右解码时不会有任何歧义也并不需要向前查看，但是不知道起点就会发生歧义。
+  6. Unicode转义字符 \uhhhh 对应16bit的码点值， \Uhhhhhhhh 对应32bit的码点值，其中h是一个十六进制数字；
+  ***************
+  "世界"
+  "\xe4\xb8\x96\xe7\x95\x8c"
+  "\u4e16\u754c"
+  "\U00004e16\U0000754c"
+  ***************
+  7. 不用解码直接测试一个字符串是否是另一个字符串的前缀：
+  ***************
+  func HasPrefix(s, prefix string) bool {
+    return len(s) >= len(prefix) && s[:len(prefix)] == prefix
+  }
+  //后缀
+  func HasSuffix(s, suffix string) bool {
+       return len(s) >= len(suffix) && s[len(s)-len(suffix):] == suffix
+  }
+  //子串
+  func Contains(s, substr string) bool {
+    for i := 0; i < len(s); i++ {
+      if HasPrefix(s[i:], substr) {
+        return true
+      }
+    }
+    return false
+  }
+  ***************
+  处理unicode
+  ***************
+  import "unicode/utf8"
+  s := "Hello, 世界"
+  fmt.Println(len(s)) // "13"
+  fmt.Println(utf8.RuneCountInString(s)) // "9"
+  ***************
+  为了处理这些真实的字符，我们需要一个UTF8解码器。
+  ***************
+  for i := 0; i < len(s); {
+    r, size := utf8.DecodeRuneInString(s[i:])
+    fmt.Printf("%d\t%c\n", i, r)
+    i += size
+  }
+  ***************
+  DecodeRuneInString函数都返回一个r和长度，r对应字符本身，长度对应r采用UTF8编码后的编码字节数目。
+  Go语言的range循环在处理字符串的时候，会自动隐式解码UTF8字符串。
+  ***************
+  for i, r := range "Hello, 世界" {
+    fmt.Printf("%d\t%q\t%d\n", i, r, r)
+  }
+  //统计字符数目
+  n := 0
+  for _, _ = range s {
+    n++
+  }
+  或
+  for range s {
+    n++
+  }
+  或
+  utf8.RuneCountInString(s)
+  ***************
+  如果遇到一个错误的UTF8编码输入，将生成一个特别的Unicode字符 \uFFFD ，在印刷中这个符号通常是一个黑色六角或钻石形状。
+  8. []rune类型转换应用到UTF8编码的字符串：
+  ***************
+  s := "プログラム"
+  fmt.Printf("% x\n", s) // "e3 83 97 e3 83 ad e3 82 b0 e3 83 a9 e3 83 a0"
+  r := []rune(s)
+  fmt.Printf("%x\n", r) // "[30d7 30ed 30b0 30e9 30e0]"
+  ***************
+   % x 参数用于在每个十六进制数字前插入一个空格
+  9. 将一个[]rune类型的Unicode字符slice或数组转为string，则对它们进行UTF8编码：
+   fmt.Println(string(r)) // "プログラム"
+  10. 如果对应码点的字符是无效的，则用 \uFFFD 无效字符作为替换。
+---------------
+3.5.4 字符串和Byte切片
+  字符串处理包：bytes、strings、strconv和unicode包。
+  strings包提供了许多如字符串的查询、替换、比较、截断、拆分和合并等功能。
+  bytes针对和字符串有着相同结构的[]byte类型，提供了很多类似功能的函数，字符串只读，逐步构建会导致很多分配和复制，使用bytes.BUffer会有效。
+  strconv包提供了布尔型、整型数、浮点数和对应字符串的相互转换，还提供了双引号转义相关的转换。
+  unicode包提供了IsDigit、IsLetter、IsUpper和IsLower等，每个函数有一个单一的rune类型的参数，然后返回一个布尔值。
+  basename获取文件名：
+--------------------
+func basename(s string) {
+	for i := len(s) - 1; i >= 0; i-- {
+		if s[i] == '/' {
+			s = s[i+1:]
+			break
+		}
+	}
+	for i := len(s) - 1; i >= 0; i-- {
+		if s[i] == '.' {
+			s = s[:i]
+			break
+		}
+	}
+	return s
+}
+--------------------
+********************
+func basename2(s string) {
+	slash := strings.LastIndex(s, "/")
+	s = s[slash+1:]
+	if dot := strings.LastIndex(s, "."); dot >= 0 {
+		s = s[:dot]
+	}
+	return s
+}
+********************
+  在数字中每3个加上','：
+********************
+func comma(s string) string {
+	n := len(s)
+	if n <= 3 {
+		return s
+	}
+	return comma(s[:n-2]) + "," + s[n-3:]
+}
+********************
+  一个字符串是包含的只读字节数组，一旦创建，是不可变。
+  strings包中的六个函数：
+    func Contains(s, substr string) bool
+    func Count(s, sep string) int
+    func Fields(s string) []string
+    func HasPrefix(s, prefix string) bool
+    func Index(s, sep string) int
+    func Join(a []string, sep string) string
+  bytes包中也对应的六个函数与上面相同，只不过参数或返回值换位[]byte。
+  bytes.Buffer变量并不需要初始化，用于字节缓存：
+********************
+func intToString(values []int) string {
+	var buf bytes.Buffer
+	buf.WriteByte('[')
+	for i, v := range values {
+		if i > 0 {
+			buf.WriteString(", ")
+		}
+		fmt.Fprintf(&buf, "%d", v)
+	}
+	buf.WriteByte(']')
+	return buf.String()
+}
+********************
+  当向bytes.Buffer添加任意字符的UTF8编码时，最好使用bytes.Buffer的WriteRune方法，但是WriteByte方法对于写入类似'['和']'等ASCII字符则会更加有效。
+--------------------
+3.5.5 字符串和数字的转换
+  将一个整数转为字符串，一种方法是用fmt.Sprintf返回一个格式化的字符串；另一个方法是用strconv.Itoa(“整数到ASCII”)。
+--------------------
+x := 123
+y := fmt.Sprintf("%d", x)
+fmt.Println(y, strconv.Itoa(x))
+--------------------
+  1. FormatInt和FormatUint函数可以用不同的进制来格式化数字
+  ***************
+  fmt.Println(strconv.FormatInt(int64(x), 2)) // "1111011"
+  s := fmt.Sprintf("x=%b", x) // "x=1111011"
+  ***************
+  2. 如果要将一个字符串解析为整数，可以使用strconv包的Atoi或ParseInt函数，或者无符号整数解析ParseUint：
+  ***************
+  x, err := strconv.Atoi("123") // x is an int
+  y, err := strconv.ParseInt("123", 10, 64) // base 10, up to 64 bits，16表示int16，0则表示int
+  ***************
+  3. fmt.Scanf来解析输入的字符串和数字。
+--------------------
+3.6 常量
+  1. 常量表达式的值在编译期计算，而不是在运行期。
+  2. 常量的值不可修改，这样可以防止在运行期被意外或恶意的修改。
+  ***************
+  const (
+    e = 2.71828
+    pi = 3.14
+  )
+  ***************
+  3. 所有常量的运算都可以在编译期完成，当操作数是常量时，一些运行时的错误也可以在编译时被发现，整数除零、字符串索引越界、任何导致无效浮点数的操作等。
+  4. len、cap、real、imag、complex和unsafe.Sizeof返回常量，在编译期确定。
+  5. 如果是批量声明的常量，除了第一个外其它的常量右边的初始化表达式都可以省略，如果省略初始化表达式则表示使用前面常量的初始化表达式写法，对应的常量类型也一样的：
+  ***************
+  const (
+    a = 1
+    b
+    c = 2
+    d
+    //1 1 2 2
+  )
+  ***************
+  可以带来iota常量生成器语法。
+--------------------
+3.6.1 iota常量生成器
+  1. 常量声明可以使用iota常量生成器初始化，生成一组以相似规则初始化的常量，第一个声明置0，后面加1。
+  ***************
+  type Weekday int
+  const (
+	Sunday Weekday = iota
+	Monday
+	Tuesday
+	Wednesday
+	Thursday
+	Friday
+	Saturday
+  )
+  ***************
+  给一个无符号整数的最低5bit的每个bit指定一个名字：
+  ***************
+  type Flags uint
+
+const (
+	FlagUp           Flags = 1 << iota // is up
+	FlagBroadcast                      // supports broadcast access capability
+	FlagLoopback                       // is a loopback interface
+	FlagPointToPoint                   // belongs to a point-to-point link
+	FlagMulticast                      // supports multicast access capability
+)
+  ***************
+  这些可以用于测试、设置或清除对应的bit位的值：
+  ********************
+  func IsUp(v Flags) bool     { return v&FlagUp == FlagUp }
+  func TurnDown(v *Flags)     { *v &^= FlagUp }
+  func SetBroadcast(v *Flags) { *v |= FlagBroadcast }
+  func IsCast(v Flags) bool   { return v&(FlagBroadcast|FlagMulticast) != 0 }
+  func main() {
+	var v Flags = FlagMulticast | FlagUp
+	fmt.Printf("%b %t\n", v, IsUp(v)) // "10001 true"
+	TurnDown(&v)
+	fmt.Printf("%b %t\n", v, IsUp(v)) // "10000 false"
+	SetBroadcast(&v)
+	fmt.Printf("%b %t\n", v, IsUp(v))   // "10010 false"
+	fmt.Printf("%b %t\n", v, IsCast(v)) // "10010 true"
+  }
+  ********************
+  1024的幂：
+  ********************
+  const (
+	_   = 1 << (10 * iota)
+	KiB // 1024
+	MiB // 1048576
+	GiB // 1073741824
+	TiB // 1099511627776 (exceeds 1 << 32)
+	PiB // 1125899906842624
+	EiB // 1152921504606846976
+	ZiB // 1180591620717411303424 (exceeds 1 << 64)
+	YiB // 1208925819614629174706176
+  )
+  ********************
+--------------------
+3.6.2 无类型常量
+  1. Go中许多常量并没有一个明确的基础类型，编译器为这些没有明确的基础类型的数字常量提供比基础类型更高精度的算术运算；你可以认为至少有256bit的运算精度。
+  2. 六种未明确类型的常量类型：无类型的布尔型、无类型的整数、无类型的字符、无类型的浮点数、无类型的复数、无类型的字符串。
+  3. 通过延迟明确常量的具体类型，无类型的常量不仅可以提供更高的运算精度，而且可以直接用于更多的表达式而不需要显式的类型转换。
+  4. math.Pi无类型的浮点数常量，可以直接用于任意需要浮点数或复数的地方，但是如果被指定为确定类型，在使用其他类型要转换：
+  ***************
+  const Pi64 float64 = math.Pi
+  var x float32 = float32(Pi64)
+  var y float64 = Pi64
+  var z complex128 = complex128(Pi64)
+  ***************
+  5. 不同写法，不同类型值：
+    0	无类型整数
+    0.0	无类型浮点数
+    0i	无类型复数
+    \u0000 无类型字符
+    true和false也是无类型的布尔类型，字符串面值常量是无类型的字符串类型。
+  6. 只有常量可以是无类型的。当一个无类型的常量被赋值给一个变量的时候或出现在有明确类型的变量声明的右边，将会被隐式转换为对应的类型。
+  ***************
+  var f float64 = 3 + 0i // untyped complex -> float64
+  f = 2 // untyped integer -> float64
+  f = 1e123 // untyped floating-point -> float64
+  f = 'a' // untyped rune -> float64
+  ***************
+  7. 无论是隐式或显式转换，将一种类型转换为另一种类型都要求目标可以表示原始值。
+  ********************
+  const (
+	deadbeef = 0xdeadbeef        // untyped int with value 3735928559
+	a        = uint32(deadbeef)  // uint32 with value 3735928559
+	b        = float32(deadbeef) // float32 with value 3735928576 (rounded up)
+	c        = float64(deadbeef) // float64 with value 3735928559 (exact)
+	d        = int32(deadbeef)   // compile error: constant overflows int32
+	e        = float64(1e309)    // compile error: constant overflows float64
+	f        = uint(-1)          // compile error: constant underflows uint
+)
+  ********************
+  8. 对于一个没有显式类型的变量声明（包括简短变量声明），常量的形式将隐式决定变量的默认类型：
+  ---------------
+  i := 0 // untyped integer; implicit int(0)
+  r := '\000' // untyped rune; implicit rune('\000')
+  f := 0.0 // untyped floating-point; implicit float64(0.0)
+  c := 0i // untyped complex; implicit complex128(0i)
+  ---------------
+  9. 无类型整数常量转换为int，它的内存大小是不确定的，但是无类型浮点数和复数常量则转换为内存大小明确的float64和complex128。
+  10. 如果要给变量一个不同的类型，我们必须显式地将无类型的常量转化为所需的类型，或给声明的变量指定明确的类型：
+  ***************
+  var i = int8(0)
+  var i int8 = 0
+  ***************
+--------------------chapter 4 复合数据类型--------------------

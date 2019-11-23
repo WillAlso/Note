@@ -717,4 +717,28 @@ public class Audience{
     <aop:before pointcut-ref="performance" method="takeSeats"/>
 2. 声明环绕通知
   如要统计前置到后置的时间。
-  
+  使用环绕通知，可以完成之前前置通知和后置通知所实现的相同功能，整个通知逻辑是在一个方法内实现的，所以不需要成员变量保存状态。
+********************
+// watchPerformance
+public void  watchPerformance(ProceedingJoinPoint joinpoint){
+  try {
+    long start = System.currentTimeMillis();//表演之前
+    joinpoint.proceed();//执行被通知的方法
+    long end = System.currentTimeMillis();//表演之后
+  } catch (Throwable t) {
+    //失败之后
+  }
+}
+********************
+********************
+<aop:config>
+  <aop:aspect ref="audience>
+    <aop:pointcut id="performance2" expression=
+      "execution(* com.springaction.springidol.Performer.perform(..))" />
+    <aop:around
+      pointcut=-ref="performance2"
+      method="watchPerformance()" />
+  </aop:aspect>
+</aop:config>
+********************
+3. 为通知传递参数

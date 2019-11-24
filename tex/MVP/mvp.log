@@ -1,4 +1,4 @@
-This is XeTeX, Version 3.1415926-2.3-0.9997.5 (MiKTeX 2.9) (preloaded format=xelatex 2019.11.8)  10 NOV 2019 12:34
+This is XeTeX, Version 3.1415926-2.3-0.9997.5 (MiKTeX 2.9) (preloaded format=xelatex 2019.11.8)  24 NOV 2019 12:29
 entering extended mode
 **mvp.tex
 (E:\Note\tex\MVP\mvp.tex
@@ -764,10 +764,10 @@ Requested font "SimSun/ICU:mapping=tex-text;" at 10.54pt
 ]
 (E:\Note\tex\MVP\mvp.aux) ) 
 Here is how much of TeX's memory you used:
- 14792 strings out of 430478
- 314385 string characters out of 3191502
+ 14797 strings out of 430478
+ 314488 string characters out of 3191502
  305580 words of memory out of 3000000
- 17744 multiletter control sequences out of 15000+200000
+ 17749 multiletter control sequences out of 15000+200000
  6600 words of font info for 51 fonts, out of 3000000 for 9000
  14 hyphenation exceptions out of 8191
  57i,6n,36p,815b,266s stack positions out of 5000i,500n,10000p,200000b,50000s

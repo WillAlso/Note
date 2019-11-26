@@ -1,0 +1,199 @@
+\chapter{线程 上}
+课前问题：
+\begin{enumerate}
+	\item 程序代码一般都是顺序执行的，如何让程序在运行过程中，实现
+	多个代码段的同时运行？
+	\item 如何创建多个线程？创建线程的两种方式是什么？
+	\item 线程为什么要休眠？
+	\item Thread类都有哪些方法？
+\end{enumerate}
+\section{线程的基本概念}
+\noindent 线程：一个线程是一个程序内部的顺序控制流。
+\\线程和进程
+\begin{itemize}
+	\item 每个进程都有独立的代码和数据空间（进程上下文），进程切换开销大。
+	\item 线程是轻量的进程，同一类线程共享代码和数据空间，每个线程有
+	独立的运行栈和程序计数器（PC），线程切换的开销小。
+\end{itemize}
+\noindent 多进程：在操作系统中，能同时运行多个任务（程序）。
+\\多进程：在同一应用程序中，有多个顺序流同时执行。
+\subsubsection{线程的概念模型}
+\noindent 1. 虚拟的CPU，封装在java.lang.Thread类中。
+\\2. CPU所执行的代码，传递给Thread类。
+\\3. CPU所处理的数据，传递给Thread类。
+\subsubsection{线程体}
+\noindent 1. Java的线程是通过java.lang.Thread类实现的。
+\\2. 每个线程都是通过某个特定Thread对象的方法run()来完成其操作，
+方法run()成为线程体。
+\subsubsection{构造线程的两种方法}
+\begin{enumerate}
+	\item 定义一个线程类，它继承Thread并重写其中的方法run()；
+	\item 通过实现接口Runnable的类作为线程的目标对象，在初始化一个
+	Thread类或者Thread子类的线程对象时，把目标对象传递这个线程实例，目标对象提供线程体run().
+	\subitem public Thread(ThreadGroup group, Runnable target, String name);
+\end{enumerate}
+\subsubsection{题目}
+\begin{enumerate}
+	\item Java中的第一个线程都属于某个线程组；
+	\item 线程只能在其创建时设置所属的线程组；
+	\item 线程创建之后，不可以从一个线程组转移到另一个线程组；
+	\item 新建的线程默认情况下属于其父线程所属的线程组；
+	\item 线程组成：程序计数器、堆栈、栈指针，进程地址空间中的代码不属于线程。
+	\item Java的线程模型：
+	代码可以与其他线程共享，
+	数据可以被多个线程共享，
+	线程模型在java.lang.Thread类中被定义。
+\end{enumerate}
+\section{通过Thread类创建线程}
+\subsection{Thread类}
+1. Thread直接继承了Object类，并实现了Runnable接口，位于lang.lang。
+\par 2. 封装了线程对象需要的属性和方法。
+\subsection{创建线程}
+\noindent 1. 从Thread类派生一个子类，并创建子类的对象；
+\\2. 子类应该重写Thread类的run()方法，写入需要在新线程中执行的语句段；
+\\3. 调用start方法来启动新线程，自动进入run方法。
+\\在main中调用新的线程，注：
+\begin{itemize}
+	\item main方法调用thread.start()方法启动新线程后并不等待其run()方法返回就继续运行，
+	线程的run方法在一边独自运行，不影响原来的main方法运行。
+\end{itemize}
+\subsubsection{问题}
+\begin{enumerate}
+	\item 一个线程是一个Thread类的实例，线程从传递给纯种的Runnable实例run()方法开始执行；
+	\item 线程操作的数据来自Runnable实例，新建的线程调用start()方法不能立即进入运行状态，进入就绪状态，必须还要保证当前线程获取到资源以后调用run()才能开始执行；
+	\item 在线程A中执行线程B的join()方法，则线程A等待直到B执行完成；
+	\item 线程A通过调用interrupt()方法来中断其阻塞状态；
+	\item 若线程A调用方法isAlive()返回值为true，则说明A正在执行中；
+	\item currentThread()获取当前线程对象，而不是引用；
+	\item 程序的执行完毕与超级线程(daemon threads)无关。
+\end{enumerate}
+\section{线程的休眠}
+\subsection{延长主线程}
+使用Thread.sleep(1)，休眠1ms;在主线程休眠时，会执行子线程。
+\par 对于线程，休眠时会把执行权交给其他线程，如果在main线程中调用多个线程，
+会导致当前线程按照start顺序执行。
+\par 休眠原因：让其他线程得到执行的机会。
+\subsection{问题}
+\begin{enumerate}
+	\item Thread.sleep(cnt);会导致抛出异常；
+\end{enumerate}
+\section{Thread类详解}
+常用方法见表1.1
+\begin{table}[!h]
+	\centering
+	\caption{Thread类常用API方法}
+	\begin{tabular}{|p{0.4\textwidth}|p{0.6\textwidth}|}%p{2cm}<{\centering} 
+		\hline
+		名称&说明\\
+		\hline
+		public Thread()&构造一个新的线程对象，默认名为Thread-n，n是从0开始递增的整数\\
+		\hline
+		public Thread(Runnable target)&构造一个新的线程对象，以一个实现Runnable接口
+		的类的对象为参数。默认名为Thread-n，n是从0开始递增的整数。\\
+		\hline
+		public Thread(String name)&构造一个新的线程对象，并同时指定线程名\\
+		\hline
+		public static Thread currentThread()&返回当前正在运行的线程对象\\
+		\hline
+		public static void yield()&使当前线程对象暂停，允许别的线程开始运行\\
+		\hline
+		public static void sleep(long millis)&使当前线程暂停运行指定毫秒数，
+		但线程并不失去已获得的锁\\
+		\hline
+		public void start()&启动线程，JVM将调用此线程的run()方法，结果是将
+		同时运行两个线程，当前线程和执行run方法的线程\\
+		\hline
+		public void run()&Thread的子类应该重写此方法，内容应为该线程应执行的任务\\
+		\hline
+		public final void stop()&停止线程运行，释放该线程占用的对象锁\\
+		\hline
+		public void interrupt()&中断此线程\\
+		\hline
+		public fianl void join()&如果此前启动了线程A，调用join方法将等待线程A死亡
+		才能继续执行当前线程\\
+		\hline
+		public final void join(long millis)&如果此前启动了线程A，调用join方法将等待
+		指定毫秒数或线程A死亡才能继续执行当前线程\\
+		\hline
+		public final void setPriority(int new Priority)&设置线程优先级\\
+		\hline
+		public final void setDaemon(Boolean on)&设置是否为后台进程，如果当前运行线程均为后台线程，则JVM停止运行，此方法必须在start()方法
+		调用前使用\\
+		\hline
+		public final void checkAccess()&判断当前线程是否有权力修改调用此方法的线程\\
+		\hline
+		public void setName(String name)&更改本线程的名称为指定参数\\
+		\hline
+		public final boolean isAlive()&测试线程是否处于活动状态，如果线程被启动并且
+		没有死亡则返回true\\
+		\hline
+	\end{tabular}
+\end{table}
+\section{通过Runnable接口创建线程}
+\subsection{Runnable使用及特点}
+Runnable接口只有一个run()方法，实际上Thread也是实现了Runnable接口；
+\begin{itemize}
+	\item 便于多个线程共享资源
+	\item Java不支持多继承，如果已经继承了某个基类，便需要实现Runnable接口来生成多线程
+	\item 以实现Runnable的对象为参数建立新的线程
+	\item start启动线程
+\end{itemize}
+两种方法比较：
+\begin{itemize}
+	\item 使用Runnable接口
+	\subitem 可以将CPU、代码和数据分开，形成清晰的模型，还可以从其他类继承
+	\item 直接继承Thread类
+	\subitem
+	编写简单，直接继承，重写run方法，不能再从其他类继承
+\end{itemize}
+\subsection{问题}
+\begin{enumerate}
+	\item java的线程体由Thread类的run()方法定义，线程创建时已经确定了提供线程体的对象，java中每一个线程都有自己的名字
+\end{enumerate}
+\section{线程内部的数据共享}
+用同一个实现了Runnable接口的对象作为参数创建多个线程；这些多个线程共享同一个对象中的相同的数据。
+\par 使用一个Runnable类型对象创建的多个新线程，这多个新线程就共享了这个对象的私有成员。
+\begin{lstlisting}[language=java]
+//MyThread.java
+public class MyThread implements Runnable{
+
+	private int sleeptime;
+	
+	public MyThread() {
+		sleeptime = (int) (Math.random() * 5000);
+	}
+	
+	@Override
+	public void run() {
+		try {
+			System.out.println(Thread.currentThread().getName() + " sleep time: " + sleeptime);
+			Thread.sleep(sleeptime);
+		} catch (Exception ex) {
+		} finally {
+			System.out.println(Thread.currentThread().getName() + " finished");
+		}
+	}
+}
+
+//MyThreadTest.java
+public class MyThreadTest {
+	public static void main(String[] args) {
+		MyThread mythread = new MyThread();
+		System.out.println("main thread start");
+		new Thread(mythread, "Thread 1").start();
+		new Thread(mythread, "Thread 2").start();
+		new Thread(mythread, "Thread 3").start();
+		System.out.println("main thread end");
+	}
+}
+
+//output
+main thread start
+main thread end
+Thread 1 sleep time: 3750
+Thread 2 sleep time: 3750
+Thread 3 sleep time: 3750
+Thread 2 finished
+Thread 3 finished
+Thread 1 finished
+\end{lstlisting}

@@ -1,0 +1,255 @@
+\chapter{线程下}
+课前思考
+\begin{itemize}
+	\item 线程安全描述的是谁的特性？
+	\item 如何实现线程安全？
+	\item 线程的锁如何优化？
+\end{itemize}
+\section{线程安全与线程兼容与对立}
+\subsection{线程安全}
+\textbf{线程安全：}当多个线程访问同一个对象时，如果不用考虑这些线程在运行时环境的调度和交替执行，
+也不需要进行额外的同步，或者在调用方进行任何其他的协调操作，调用这个对象的行为都可以获得正确的
+结果，那这个对象是线程安全的。
+\\ Java的线程安全：
+\begin{itemize}
+	\item 不可变
+	\item 绝对线程安全
+	\item 相对线程安全
+	\item 线程兼容和对立
+\end{itemize}
+\subsection{不可变}
+\begin{itemize}
+	\item final修饰：public final a = 100;
+	\item java.lang.String: String s = "string";
+	\item 枚举类型：public enum Color{RED,BLUE}
+	\item java.lang.Number的子类，如Long，Double
+	\item BigInteger,BigDecimal（数值类型的高精度实现）
+\end{itemize}
+\subsection{绝对线程安全}
+\begin{itemize}
+	\item 满足线程安全定义的；
+	\item Java API标注自己是线程安全的类绝大部分不是绝对线程安全的（java.util.Vector）
+\end{itemize}
+\subsection{相对线程安全}
+通常意义上的线程安全，需要保证这个对象单独操作是线程安全的，调用的时候不需要
+做额外的保障措施，但是对于一些特定顺序的连续调用，就需要在调用时使用同步手段保证调用的正确性。
+（如：Vector、HashTable）
+\begin{lstlisting}[language=java]
+public class VectorSafe {
+private static Vector<Integer> vector = new Vector<Integer>();
+	public static void main(String[] args) {
+		while (true) {
+			for (int i = 0; i < 10; i++) {
+				vector.add(i);
+			}
+			Thread remove = new Thread(new Runnable() {
+			@Override
+			public void run() {
+				for (int i = 0; i < vector.size(); i++) {
+					vector.remove(i);
+				}
+			}
+			});
+			Thread print = new Thread(new Runnable() {
+			@Override
+			public void run() {
+				for (int i = 0; i < vector.size(); i++) {
+					System.out.println(vector.get(i));
+				}
+			}
+			});
+			remove.start();
+			print.start();
+			while (Thread.activeCount() > 20);
+		}
+	}
+}
+\end{lstlisting}
+\par 有时会出错，有时不会出错，出错时为数组下标越界错误。
+\par 改进方法synchronized：
+\begin{lstlisting}[language=java]
+Thread remove = new Thread(new Runnable() {
+	@Override
+	public void run() {
+		synchronized (vector) {
+			for (int i = 0; i < vector.size(); i++) {
+				vector.remove(i);
+			}
+		}
+	}
+});
+Thread print = new Thread(new Runnable() {
+	@Override
+	public void run() {
+		synchronized (vector) {
+			for (int i = 0; i < vector.size(); i++) {
+				System.out.println(vector.get(i));
+			}
+		}
+	}
+});
+\end{lstlisting}
+\subsection{线程兼容和线程对立}
+\noindent \textbf{线程兼容：}对象本身不是线程安全的，但是可以通过在调用端正确地使用同步手段来保证
+对象在并发环境中可以安全使用。
+\\ \textbf{线程对立：}无论调用端是否采取了同步措施，都无法在多线程环境中并发使用的代码。
+\begin{itemize}
+	\item Java中线程对立：Thread类的suspend()和resume()方法可能导致死锁。
+\end{itemize}
+
+\section{线程的安全实现-互斥同步}
+线程安全的实现方式：互斥同步、非阻塞同步、无同步方案。
+\subsection{互斥同步}
+同步的互斥实现方式：临界区（Critical Section）、互斥量（Mutex）、信号量（Semaphone）。
+\par 第一种方式：Java中使用Synchronized：编译后，会在同步块前后形成monitorenter和monitorexit两个字节码。
+\begin{enumerate}
+	\item synchronied同步块对自己是可重入的，不会将自己锁死；
+	\item 同步块在已进入的线程执行完之前，会阻塞后面线程的进入。
+\end{enumerate}
+\par 第二种方式：重入锁ReentrantLock(java.util.concurrent)。
+\begin{itemize}
+	\item 相比synchronized，重入锁可实现：
+	等待可中断、公平锁、锁可以绑定多个条件。
+	\item Synchronized表现为原生语法层面的互斥锁，而ReentrantLock表现为API层面的互斥锁。
+\end{itemize}
+\par 使用ReentrantLock：
+\begin{lstlisting}[language=java]
+public class BufferInterruptibly {
+	private ReentrantLock lock = new ReentrantLock();
+	public void write() {
+		lock.lock();
+		try {
+			long start = System.currentTimeMillis();
+			System.out.println("开始往这个buff写数据");
+			for (;;) {
+				if (System.currentTimeMillis() - start > Integer.MAX_VALUE) {
+					break;
+				}
+			}
+			System.out.println("写数据完毕");
+		} finally {
+			lock.unlock();
+		}
+	}
+	public void read() throws InterruptedException {
+		lock.lockInterruptibly();
+		try {
+			System.out.println("从buff读数据");
+		}finally {
+			lock.unlock();
+		}
+	}
+}
+\end{lstlisting}
+\par 对于单核、多核，ReentrantLock效率更高更稳定。
+\section{线程的安全实现-非阻塞同步}
+\noindent \textbf{阻塞同步：}互斥同步存在的问题是在进行线程阻塞和唤醒所带来的性能问题，
+这种同步称为阻塞同步（Blocking Synchronization）。
+\\ \textbf{非阻塞同步：}不同于悲观并发策略，而是使用基于冲突检测的乐观并发策略，就是先进行操作，如果没有其他线程征用共享数据，
+则操作成功；否则就是产生了冲突，采取不断重试直到成功为止的策略，这种策略不需要把线程挂起，称为非阻塞同步。
+\\ 使用非阻塞同步条件：
+\begin{itemize}
+	\item 使用硬件处理器指令进行不断重试策略；
+	\begin{itemize}
+		\item 测试并设置（Test-and-Set）
+		\item 获取并增加（Fetch-and-Increment）
+		\item 交换（Swap）
+		\item 比较并交换（Compare-and-Swap，简称CAS）
+		\item 加载链接，条件存储（Load-Linked,Store-conditional，简称LL,SC）
+		\\Java实现类AtomicInteger，AtomicDouble
+	\end{itemize}
+\end{itemize}
+\begin{lstlisting}[language=java]
+class Counter {
+	private volatile int count = 0;
+	public synchronized void increment() {
+		count++;
+	}
+	public int getCount() {
+		return count;
+	}
+}
+class CounterNon {
+	private AtomicInteger count = new AtomicInteger();
+	public void increment() {
+		count.incrementAndGet();
+	}
+	public int getCount() {
+		return count.get();
+	}
+}
+\end{lstlisting}
+\section{线程的安全实现-无同步方案}
+\subsection{无同步方案-可重入代码}
+也叫纯代码，相对线程安全来说，可以保证线程安全，可以在代码执行过程中中断它，转而去执行另一段代码，
+而在控制权返回后，原来的程序不会出现任何错误。
+\subsection{无同步方案-线程本地存储}
+如果一段代码中所需要的数据必须与其他代码共享，那就看看这些代码共享数据的代码是否能保证在同一个线程中执行，
+如果能保证，就可以把共享数据的可见范围限定在同一线程之内，这样无需同步也能保证线程之间也不会出现数据争用问题。
+\begin{lstlisting}[language=java]
+public class SequenceNumber {
+	private static ThreadLocal<Integer> seqNum = new ThreadLocal<Integer>(){
+		@Override
+		protected Integer initialValue() {
+			return 0;
+		}
+	};
+	public int getNextNum() {
+		seqNum.set(seqNum.get() + 1);
+		return seqNum.get();
+	}
+	
+	public static void main(String[] args) {
+		SequenceNumber sn = new SequenceNumber();
+		TestClient t1 = new TestClient(sn);
+		TestClient t2 = new TestClient(sn);
+		TestClient t3 = new TestClient(sn);
+		t1.start();
+		t2.start();
+		t3.start();
+	}
+	private static class TestClient extends Thread {
+		private SequenceNumber sn;
+		public TestClient(SequenceNumber sn) {
+			this.sn = sn;
+		}
+		public void run() {
+			for (int i = 0; i < 3; i++) {
+				System.out.println("thread[" + Thread.currentThread().getName() + "]sn[" + sn.getNextNum() + "]");
+			}
+		}
+	}
+}
+\end{lstlisting}
+\section{锁优化}
+锁优化方式：自旋锁、自适应锁、锁消除、锁粗化、偏向锁。
+\subsection{自旋锁}
+\noindent 互斥同步存在的问题：挂起线程和恢复线程都需要转入内核态中完成，这些操作给系统的并发性能带来很大压力。
+\\ \textbf{自旋锁：}
+如果物理机器有一个以上的处理器能让两个或以上线程同时并行执行，那就可以让后面请求锁的那个线程等待一会，
+但不放弃处理器的执行时间，看看持有锁的线程是否能很快就会释放锁。为了让线程等待，我们只有让线程执行一个忙循环（自旋），
+这项技术称为自旋锁，Java默认自选次数10次。
+\subsection{自适应锁}
+\noindent \textbf{自适应自旋：}
+自适应意味着自旋的时间不再固定，而是由前一次在同一个锁上的自旋时间及锁拥有者的状态来决定。
+如果在同一个锁对象上，自旋等待刚刚成功获得锁，并且持有锁的线程正在运行中，那么虚拟机就会认为这次
+自旋也很有可能再次成功，进而它允许自旋等待相对更长的一段时间。
+\subsection{锁消除}
+\noindent \textbf{锁消除：}JVM即时编译器在运行时，对一些代码上要求同步，但是被检测到不可能存在共享数据竞争的锁进行消除。
+\\ 判断依据：如果判断在一段代码中，堆上的所有数据都不会逃逸出去从而被其他线程访问到，那就可以把它们当做栈上数据对待，
+认为它们是线程私有的，同步加锁无需进行。
+\subsection{锁粗化}
+\noindent \textbf{锁粗化：}代码中，同步块范围尽量小，只在共享数据的实际作用域中才进行同步，
+这样是为了使得同步操作的数量尽可能变小。
+\\ 另一种情况，如果一系列的连续操作都对同一个对象反复加锁，甚至加锁是出现在循环体中，那即使没有现成争用，频繁的进行互斥
+同步也会导致不必要的性能消耗，此时只需要将同步块范围扩大，即：锁粗化。
+\subsection{偏向锁}
+\noindent \textbf{偏向锁目的：}
+消除数据无竞争情况下的同步原语，进一步提高程序运行的性能。偏向锁就是在无竞争的情况下
+把整个同步都消除掉，连CAS操作都不做。
+\section{小结}
+\begin{enumerate}
+	\item 线程安全、线程兼容与线程对立；
+	\item 线程安全的实现方式；
+	\item 锁优化。
+\end{enumerate}

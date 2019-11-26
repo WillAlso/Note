@@ -711,4 +711,93 @@ B. 接收器实参是类型T，但接收器形参是类型 *T ，这种情况下
 ********************
 p.ScaleBy(2) // implicit (&p)
 ********************
-
+C. 接收器实参是类型 *T ，形参是类型T。编译器会隐式地为我们解引用，取到指针指向的实际变量：
+********************
+pptr.Distance(q)//implicit (*pptr)
+********************
+注：
+如果命名类型T(译注：用type xxx定义的类型)的所有方法都是用T类型自己来做接收器(而不是 *T )，那么拷贝这种类型的实例就是安全的；调用他的任何一个方法也就会产生一个值的拷贝。
+但是如果一个方法使用指针作为接收器，你需要避免对其进行拷贝，因为这样可能会破坏掉该类型内部的不变性。
+--------------------
+6.2.1 Nil也是一个合法的接收器类型
+就像在普通函数中一样，虽然可以通过引用来操作内部值，但在方法想要修改引用本身是不会影响原始值的，比如把他置为nil，或者让这个引用指向了其它的对象，调用方都不会受影响。
+--------------------
+6.3 通过嵌入结构体来扩展类型
+********************
+import "image/color"
+type Point struct{ X, Y float64 }
+type ColoredPoint struct {
+  Point
+  Color color.RGBA
+}
+********************
+在类型中内嵌的匿名字段也可能是一个命名类型的指针，这种情况下字段和方法会被间接地引入到当前的类型中。
+一个struct类型也可能会有多个匿名字段：
+********************
+type ColoredPoint struct {
+  Point
+  color.RGBA
+}
+********************
+********************
+//vaesion 1
+var (
+  mu sync.Mutex // guards mapping
+  mapping = make(map[string]string)
+)
+func Lookup(key string) string {
+  mu.Lock()
+  v := mapping[key]
+  mu.Unlock()
+  return v
+}
+//version 2
+var cache = struct {
+  sync.Mutex
+  mapping map[string]string
+}{
+  mapping: make(map[string]string),
+}
+func Lookup(key string) string {
+  cache.Lock()
+  v := cache.mapping[key]
+  cache.Unlock()
+  return v
+}
+********************
+--------------------
+6.4 方法值和方法表达式
+p.Distance叫作“选择器”，选择器会返回一个方法"值"->一个将方法(Point.Distance)绑定到特定接收器变量的函数。这个函数可以不通过指定其接收器即可被调用；即调用时不需要指定接收器(译注：因为已经在前文中指定过了)，只要传入函数的参数即可：
+********************
+p := Point{1, 2}
+q := Point{4, 6}
+distanceFromP := p.Distance // method value
+fmt.Println(distanceFromP(q)) // "5"
+var origin Point // {0, 0}
+fmt.Println(distanceFromP(origin)) // "2.23606797749979", sqrt(5)
+scaleP := p.ScaleBy // method value
+scaleP(2) // p becomes (2, 4)
+scaleP(3) // then (6, 12)
+scaleP(10) // then (60, 120)
+********************
+在一个包的API需要一个函数值、且调用方希望操作的是某一个绑定了对象的方法的话，方法"值"会非常实用。
+********************
+type Rocket struct { /* ... */ }
+func (r *Rocket) Launch() { /* ... */ }
+r := new(Rocket)
+time.AfterFunc(10 * time.Second, func() { r.Launch() })
+********************
+直接用方法"值"传入AfterFunc的话可以更为简短：
+time.AfterFunc(10 * time.Second, r.Launch)
+当T是一个类型时，方法表达式可能会写作 T.f 或者 (*T).f ，会返回一个函数"值"，这种函数会将其第一个参数用作接收器，所以可以用通常(译注：不写选择器)的方式来对其进行调用：
+********************
+p := Point{1, 2}
+q := Point{4, 6}
+distance := Point.Distance // method expression
+fmt.Println(distance(p, q)) // "5"
+fmt.Printf("%T\n", distance) // "func(Point, Point) float64"
+scale := (*Point).ScaleBy
+scale(&p, 2)
+fmt.Println(p) // "{2 4}"
+fmt.Printf("%T\n", scale) // "func(*Point, float64)"
+********************

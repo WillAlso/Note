@@ -1,3 +1,16 @@
 \contentsline {section}{\numberline {1}MVC}{1}{section.1}%
 \contentsline {subsection}{\numberline {1.1}MVC来源}{1}{subsection.1.1}%
-\contentsline {subsection}{\numberline {1.2}组件}{1}{subsection.1.2}%
+\contentsline {subsection}{\numberline {1.2}组件}{2}{subsection.1.2}%
+\contentsline {subsection}{\numberline {1.3}优点}{3}{subsection.1.3}%
+\contentsline {subsection}{\numberline {1.4}缺点}{3}{subsection.1.4}%
+\contentsline {subsection}{\numberline {1.5}实现}{4}{subsection.1.5}%
+\contentsline {subsubsection}{\numberline {1.5.1}Java}{4}{subsubsection.1.5.1}%
+\contentsline {subsubsection}{\numberline {1.5.2}JavaScript}{4}{subsubsection.1.5.2}%
+\contentsline {section}{\numberline {2}Android中的MVC}{4}{section.2}%
+\contentsline {subsection}{\numberline {2.1}MVC class}{4}{subsection.2.1}%
+\contentsline {subsection}{\numberline {2.2}MVC变体}{4}{subsection.2.2}%
+\contentsline {subsubsection}{\numberline {2.2.1}Passive Model}{5}{subsubsection.2.2.1}%
+\contentsline {subsubsection}{\numberline {2.2.2}Active Model}{5}{subsubsection.2.2.2}%
+\contentsline {subsection}{\numberline {2.3}应用}{5}{subsection.2.3}%
+\contentsline {subsubsection}{\numberline {2.3.1}问题：Who Handles The UI Logic?}{7}{subsubsection.2.3.1}%
+\contentsline {section}{\numberline {3}代码例子}{8}{section.3}%

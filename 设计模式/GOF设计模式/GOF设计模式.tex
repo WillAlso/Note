@@ -1,10 +1,13 @@
 \documentclass[a4paper,12pt]{ctexbook}
 
 \usepackage{listings}
+\usepackage{multirow}
 \usepackage{indentfirst}
+\usepackage{graphicx}
 \usepackage{xcolor}
 \usepackage{geometry}
 \geometry{top=2.5cm,bottom=3.0cm,left=2.0cm,right=2.0cm}
+\newcommand{\tabincell}[2]{\begin{tabular}{@{}#1@{}}#2\end{tabular}}
 \lstset{
 	columns=fixed,
 	numbers=left,
@@ -31,6 +34,5 @@
 	\maketitle
 	\tableofcontents
 	\include{chapter01}
-	\chapter{asd}sd
 	
 \end{document}

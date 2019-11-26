@@ -1,4 +1,4 @@
-This is XeTeX, Version 3.14159265-2.6-0.999991 (MiKTeX 2.9.7250 64-bit) (preloaded format=xelatex 2019.11.24)  24 NOV 2019 22:55
+This is XeTeX, Version 3.14159265-2.6-0.999991 (MiKTeX 2.9.7250 64-bit) (preloaded format=xelatex 2019.11.24)  25 NOV 2019 11:26
 entering extended mode
 **./Android中的MVC.tex
 (Android中的MVC.tex
@@ -826,35 +826,90 @@ LaTeX Font Info:    External font `cmex10' loaded for size
 \tf@toc=\write4
 \openout4 = `Android中的MVC.toc'.
 
+ [1
 
+]
 Overfull \hbox (14.84125pt too wide) in paragraph at lines 41--43
 []\TU/SimSun(0)/m/n/12 模 型  |（\TU/lmr/m/n/12 Model\TU/SimSun(0)/m/n/12 ）|  用 于 
 封 装 与 应 用 程 序 的 业 务 逻 辑 相 关 的 数 据 以 及 对 数 据 的 处 理 方 法。| |“\TU/lmr/m/n/12 Model\
 TU/SimSun(0)/m/n/12 ”|
  []
 
-[1
-
-]
 File: image/1.png Graphic file (type bmp)
 <image/1.png>
-Package atveryend Info: Empty hook `BeforeClearDocument' on input line 49.
- [2]
-Package atveryend Info: Empty hook `AfterLastShipout' on input line 49.
- (Android中的MVC.aux)
-Package atveryend Info: Empty hook `AtVeryEndDocument' on input line 49.
-Package atveryend Info: Executing hook `AtEndAfterFileList' on input line 49.
+[2] [3]
+
+Package fontspec Info: Could not resolve font "FangSong/BI" (it probably
+(fontspec)             doesn't exist).
+
+
+Package fontspec Info: Could not resolve font "FangSong/B" (it probably
+(fontspec)             doesn't exist).
+
+
+Package fontspec Info: Could not resolve font "FangSong/I" (it probably
+(fontspec)             doesn't exist).
+
+
+Package fontspec Info: Font family 'FangSong(0)' created for font 'FangSong'
+(fontspec)             with options [Script={CJK}].
+(fontspec)              
+(fontspec)              This font family consists of the following NFSS
+(fontspec)             series/shapes:
+(fontspec)              
+(fontspec)             - 'normal' (m/n) with NFSS spec.:
+(fontspec)             <->"FangSong/OT:script=hani;language=DFLT;"
+(fontspec)             - 'small caps'  (m/sc) with NFSS spec.: 
+
+File: image/2.png Graphic file (type bmp)
+<image/2.png>
+File: image/3.png Graphic file (type bmp)
+<image/3.png>
+LaTeX Font Info:    Font shape `TU/SimSun(0)/m/sl' in size <12> not available
+(Font)              Font shape `TU/SimSun(0)/m/it' tried instead on input line 
+103.
+ [4]
+File: image/4.png Graphic file (type bmp)
+<image/4.png>
+File: image/5.png Graphic file (type bmp)
+<image/5.png>
+
+
+LaTeX Warning: `!h' float specifier changed to `!ht'.
+
+[5] [6] (D:\CTEX\MiKTeX\tex/latex/listings\lstlang1.sty
+File: lstlang1.sty 2019/09/10 1.8c listings language file
+) [7]
+File: image/6.png Graphic file (type bmp)
+<image/6.png>
+
+
+LaTeX Warning: `!h' float specifier changed to `!ht'.
+
+(D:\CTEX\MiKTeX\tex/latex/listings\lstlang1.sty
+File: lstlang1.sty 2019/09/10 1.8c listings language file
+)
+(D:\CTEX\MiKTeX\tex/latex/listings\lstmisc.sty
+File: lstmisc.sty 2019/09/10 1.8c (Carsten Heinz)
+) [8] [9] [10] [11]
+Package atveryend Info: Empty hook `BeforeClearDocument' on input line 272.
+ [12]
+Package atveryend Info: Empty hook `AfterLastShipout' on input line 272.
+
+(Android中的MVC.aux)
+Package atveryend Info: Empty hook `AtVeryEndDocument' on input line 272.
+Package atveryend Info: Executing hook `AtEndAfterFileList' on input line 272.
 Package rerunfilecheck Info: File `Android中的MVC.out' has not changed.
-(rerunfilecheck)             Checksum: 666AF295A6C906E2222FC545679CFCFF.
-Package atveryend Info: Empty hook `AtVeryVeryEnd' on input line 49.
+(rerunfilecheck)             Checksum: 9B5B092D416A7D54DE73DD38E955005F.
+Package atveryend Info: Empty hook `AtVeryVeryEnd' on input line 272.
  ) 
 Here is how much of TeX's memory you used:
- 26281 strings out of 427240
- 529614 string characters out of 3148342
- 617264 words of memory out of 3000000
- 30549 multiletter control sequences out of 15000+200000
- 536645 words of font info for 62 fonts, out of 3000000 for 9000
+ 26645 strings out of 427240
+ 538333 string characters out of 3148342
+ 882485 words of memory out of 3000000
+ 30887 multiletter control sequences out of 15000+200000
+ 536709 words of font info for 70 fonts, out of 3000000 for 9000
  1348 hyphenation exceptions out of 8191
- 58i,6n,70p,354b,482s stack positions out of 5000i,500n,10000p,200000b,50000s
+ 58i,6n,70p,470b,1726s stack positions out of 5000i,500n,10000p,200000b,50000s
 
-Output written on Android中的MVC.pdf (2 pages).
+Output written on Android中的MVC.pdf (12 pages).

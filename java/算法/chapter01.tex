@@ -1,0 +1,217 @@
+\chapter{基础}
+\section{基础编程模型}
+尽量减少对Java语言的依赖描述算法。
+\begin{itemize}
+	\item 程序是算法精确、优雅和完全的描述；
+\end{itemize}
+\subsection{Java程序的基本结构}
+Java的基本结构：
+\begin{enumerate}
+	\item 原始数据类型：浮点数、整数、布尔值、字符型；
+	\item 语句：声明、赋值、条件、循环、调用、返回；
+	\item 数组：多个同种数据类型的集合；
+	\item 静态方法：封装重用代码；
+	\item 字符串：一连串的字符；
+	\item 标准输入/输出；
+	\item 数据抽象：数据抽象和重用代码。
+\end{enumerate}
+\subsection{原始数组类型与表达式}
+\begin{itemize}
+	\item 标识符：有字母、数字、下划线和\$组成的字符串，首字母不能是数字；
+	\item 逻辑运算符：优先级! > \&\& > ||；
+	\item 强制转换double转int为截断，而不是四舍五入；
+	\item 别名：引用；
+	\begin{lstlisting}
+int[] a = new int[N];
+a[i] = 1234;
+int[] b = a;
+b[i] = 5678;//a[i]也变化
+	\end{lstlisting}
+\end{itemize}
+\subsection{方法的性质}
+\begin{enumerate}
+	\item 方法的参数按值传递：方法中改变参数的值，而不是参数本身；
+	\item 方法名可以被重载；
+	\item 方法只能返回一个值；
+	\item 方法可以产生副作用：void类型的静态方法会产生副作用。
+\end{enumerate}
+\subsection{问题}
+\begin{enumerate}
+	\item Java的字节码：Java程序的低级表示，可以运行于JVM。
+	\item Java不会自动检测溢出，但是JDK1.8中封装了安全的四则运算。
+	\item Math.abs(-2147483648)=2147483648
+	\item 无穷大：Double.POSITIVE\_INFINITY和Double.NEGATIVE\_INFINITY
+	\item Java未初始化使用变量抛出异常；
+	\item 1/0抛出除零异常，1.0/0.0为无穷大；
+	\item if <expr1> if <expr2> <stmntA> else <stmntB>有二义性；
+	\item Java不能重新读入标准输入中的值；
+	\item 标准输入为空后，会得到一个错误，StdIn.isEmpty()能够帮助检查
+	是否还有可用的输入以避免错误。
+\end{enumerate}
+\subsection{作业}
+\begin{enumerate}
+	\item 7; 200.0000002; true
+	\item double, 1.118; double, 10.0; boolean, true; String, 33
+	\item 算法如下：
+	\begin{lstlisting}
+public static void main(String[] args) {
+	if (args.length != 3) {
+		System.err.println("not equal");
+		System.exit(1);
+	}
+	if (args[0].equals(args[1]) && args[0].equals(args[2])) {
+		System.out.println("equal");
+	} else {
+		System.out.println("not equal");
+	}
+}
+	\end{lstlisting}
+	\item then非关键字；a>b没有括号；正确；c=0分号分割
+	\item 算法如下：
+	\begin{lstlisting}
+double x, y;
+x = StdIn.readDouble();
+y = StdIn.readDouble();
+if ( x < 1 && x > 0 && y < 1 && y > 0) {
+	StdOut.print(true);
+} else {
+	StdOut.print(false);
+}
+	\end{lstlisting}
+	\item 0 1 1 2 3 5 8 13 21 34 55 89 144 233 377 610 
+	\item 结果如下：
+	\begin{itemize}
+		\item 3.00009(这里使用$a_{i+1} = \frac{a_i + \frac{n}{a_i}}{2}$)
+		\item 499500
+		\item 999000
+	\end{itemize}
+	\item b; 197; e
+	\item 代码如下：
+	\begin{lstlisting}
+String s = "";
+for (int n = N; n > 0; n /= 2)
+	s = (n % 2) + s
+	\end{lstlisting}
+	\item 编译错误
+	\begin{lstlisting}
+java.lang.Error: Unresolved compilation problem: 
+	The local variable a may not have been initialized
+	\end{lstlisting}
+	\item 代码如下：
+	\begin{lstlisting}
+boolean[][] dim = { {true, true}, {false, true}};
+for (int i = 0; i < dim.length; i++) {
+	for (int j = 0; j < dim[i].length; j++) {
+		StdOut.print(dim[i][j] ? '*' : " ");
+	}
+	StdOut.print("\n");
+}
+	\end{lstlisting}
+	\item 打印a[i]：0 1 2 3 4 4 3 2 1 0 ；
+	\\打印i：0 1 2 3 4 5 6 7 8 9 
+	\item 算法如下：
+	\begin{lstlisting}
+int[][] b = new int[N][M];
+for (int i = 0; i < M; i++) {
+	for (int j = 0; j < N; j++) {
+		b[j][i] = a[i][j];
+	}
+}
+	\end{lstlisting}
+	\item 算法如下：
+	\begin{lstlisting}
+public static int lg(int N) throws Exception {
+	boolean isPositive = true;
+	if (N == 0) {
+		throw new Exception("Error: N is 0");
+	}
+	if (N < 0) {
+		isPositive = false;
+		N = -N;
+	}
+	int result = 0;
+	int sum = 2;
+	while (sum <= N) {
+		sum *= 2;
+		result++;
+	}
+	return result;
+}
+	\end{lstlisting}
+	\item 代码如下：
+	\begin{lstlisting}
+public static int[] histogram(int[] a, int M) {
+	int[] r = new int[M];
+	for (int i:a) {
+		if (i <= M && i > 0) {
+			r[i - 1]++;
+		}
+	}
+	return r;
+}
+	\end{lstlisting}
+	\item 311361142246
+	\item 错误。
+	\item 50,33，a*b，$2^{25}$和$3^{11}$
+	\item 算法如下：
+	\begin{lstlisting}
+public static BigInteger[] a = new BigInteger[100];
+public static void main(String[] args) {
+	a[0] = BigInteger.valueOf(0);
+	a[1] = BigInteger.valueOf(1);
+	for (int i = 2;i < 100; i++) {
+		a[i] = a[i-2].add(a[i-1]);
+	}
+	for (int N = 0; N < 100; N++) {
+		StdOut.println(N + 1 + "\t" + a[N]);
+	}
+}
+	\end{lstlisting}
+	\item 算法如下：
+	\begin{lstlisting}
+public static double getLn(int n) {
+if (n == 1) {
+	return 0;
+}
+	return Math.log(n) + getLn(n-1);
+}
+	\end{lstlisting}
+	\item 算法如下：
+	\begin{lstlisting}
+public static void getScore() {
+	String name = StdIn.readString();
+	int a = StdIn.readInt();
+	int b = StdIn.readInt();
+	double c = (double) a / b;
+	StdOut.printf("%s\t%d\t%d\t%.3f\n", name, a, b, c);
+}
+	\end{lstlisting}
+	\item 算法如下：
+	\begin{lstlisting}
+public static int rank(int key, int[] a, int lo, int hi, int depth) {
+	if (lo > hi) return -1;
+	int mid = lo + (hi - lo) / 2;
+	if (key < a[mid]) {
+		return rank(key, a, lo, mid - 1, ++depth);
+	} else if (key > a[mid]) {
+		return rank(key, a, mid + 1, hi, ++depth);
+	} else {
+		return mid;
+	}
+}
+	\end{lstlisting}
+	\item 算法实现：
+	\begin{lstlisting}
+while (!StdIn.isEmpty()) {
+	int key = StdIn.readInt();
+	int found = rank(key, whitelist);
+	if ('+' == symbol && found == -1)
+		StdOut.println(key);
+	if ('-' == symbol && found != -1)
+		StdOut.println(key);
+}
+	\end{lstlisting}
+	\item 
+\end{enumerate}
+
+\section{数据抽象}

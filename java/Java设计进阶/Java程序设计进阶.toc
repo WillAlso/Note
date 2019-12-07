@@ -1,54 +1,175 @@
-\contentsline {chapter}{\numberline {第一章\hspace {.3em}}线程 上}{5}{chapter.1}%
-\contentsline {section}{\numberline {1.1}线程的基本概念}{5}{section.1.1}%
-\contentsline {subsubsection}{线程的概念模型}{5}{subsubsection*.2}%
-\contentsline {subsubsection}{线程体}{5}{subsubsection*.3}%
-\contentsline {subsubsection}{构造线程的两种方法}{6}{subsubsection*.4}%
-\contentsline {subsubsection}{题目}{6}{subsubsection*.5}%
-\contentsline {section}{\numberline {1.2}通过Thread类创建线程}{6}{section.1.2}%
-\contentsline {subsection}{\numberline {1.2.1}Thread类}{6}{subsection.1.2.1}%
-\contentsline {subsection}{\numberline {1.2.2}创建线程}{6}{subsection.1.2.2}%
-\contentsline {subsubsection}{问题}{7}{subsubsection*.6}%
-\contentsline {section}{\numberline {1.3}线程的休眠}{7}{section.1.3}%
-\contentsline {subsection}{\numberline {1.3.1}延长主线程}{7}{subsection.1.3.1}%
-\contentsline {subsection}{\numberline {1.3.2}问题}{7}{subsection.1.3.2}%
-\contentsline {section}{\numberline {1.4}Thread类详解}{7}{section.1.4}%
-\contentsline {section}{\numberline {1.5}通过Runnable接口创建线程}{7}{section.1.5}%
-\contentsline {subsection}{\numberline {1.5.1}Runnable使用及特点}{7}{subsection.1.5.1}%
-\contentsline {subsection}{\numberline {1.5.2}问题}{9}{subsection.1.5.2}%
-\contentsline {section}{\numberline {1.6}线程内部的数据共享}{9}{section.1.6}%
-\contentsline {chapter}{\numberline {第二章\hspace {.3em}}线程中}{11}{chapter.2}%
-\contentsline {section}{\numberline {2.1}线程同步的思路}{11}{section.2.1}%
-\contentsline {subsection}{\numberline {2.1.1}多线程的同步控制}{11}{subsection.2.1.1}%
-\contentsline {section}{\numberline {2.2}线程同步的实现方式-Synchronization}{14}{section.2.2}%
-\contentsline {subsection}{\numberline {2.2.1}线程同步}{14}{subsection.2.2.1}%
-\contentsline {subsubsection}{synchronized}{14}{subsubsection*.7}%
-\contentsline {section}{\numberline {2.3}线程的等待和唤醒}{17}{section.2.3}%
-\contentsline {subsection}{\numberline {2.3.1}线程的等待-wait()方法}{17}{subsection.2.3.1}%
-\contentsline {subsection}{\numberline {2.3.2}线程的唤醒-notify()和notifyAll()方法}{17}{subsection.2.3.2}%
-\contentsline {section}{\numberline {2.4}后台线程}{18}{section.2.4}%
-\contentsline {section}{\numberline {2.5}线程的生命周期与死锁}{19}{section.2.5}%
-\contentsline {subsection}{\numberline {2.5.1}线程的生命周期}{19}{subsection.2.5.1}%
-\contentsline {subsection}{\numberline {2.5.2}死锁}{20}{subsection.2.5.2}%
-\contentsline {subsection}{\numberline {2.5.3}控制线程的生命}{20}{subsection.2.5.3}%
-\contentsline {section}{\numberline {2.6}线程的调度}{20}{section.2.6}%
-\contentsline {subsection}{\numberline {2.6.1}线程的优先级}{20}{subsection.2.6.1}%
-\contentsline {chapter}{\numberline {第三章\hspace {.3em}}线程下}{23}{chapter.3}%
-\contentsline {section}{\numberline {3.1}线程安全与线程兼容与对立}{23}{section.3.1}%
-\contentsline {subsection}{\numberline {3.1.1}线程安全}{23}{subsection.3.1.1}%
-\contentsline {subsection}{\numberline {3.1.2}不可变}{23}{subsection.3.1.2}%
-\contentsline {subsection}{\numberline {3.1.3}绝对线程安全}{24}{subsection.3.1.3}%
-\contentsline {subsection}{\numberline {3.1.4}相对线程安全}{24}{subsection.3.1.4}%
-\contentsline {subsection}{\numberline {3.1.5}线程兼容和线程对立}{25}{subsection.3.1.5}%
-\contentsline {section}{\numberline {3.2}线程的安全实现-互斥同步}{26}{section.3.2}%
-\contentsline {subsection}{\numberline {3.2.1}互斥同步}{26}{subsection.3.2.1}%
-\contentsline {section}{\numberline {3.3}线程的安全实现-非阻塞同步}{27}{section.3.3}%
-\contentsline {section}{\numberline {3.4}线程的安全实现-无同步方案}{28}{section.3.4}%
-\contentsline {subsection}{\numberline {3.4.1}无同步方案-可重入代码}{28}{subsection.3.4.1}%
-\contentsline {subsection}{\numberline {3.4.2}无同步方案-线程本地存储}{28}{subsection.3.4.2}%
-\contentsline {section}{\numberline {3.5}锁优化}{29}{section.3.5}%
-\contentsline {subsection}{\numberline {3.5.1}自旋锁}{29}{subsection.3.5.1}%
-\contentsline {subsection}{\numberline {3.5.2}自适应锁}{30}{subsection.3.5.2}%
-\contentsline {subsection}{\numberline {3.5.3}锁消除}{30}{subsection.3.5.3}%
-\contentsline {subsection}{\numberline {3.5.4}锁粗化}{30}{subsection.3.5.4}%
-\contentsline {subsection}{\numberline {3.5.5}偏向锁}{30}{subsection.3.5.5}%
-\contentsline {section}{\numberline {3.6}小结}{30}{section.3.6}%
+\contentsline {chapter}{\numberline {第一章\hspace {.3em}}线程 上}{9}{chapter.1}%
+\contentsline {section}{\numberline {1.1}线程的基本概念}{9}{section.1.1}%
+\contentsline {subsubsection}{线程的概念模型}{9}{subsubsection*.2}%
+\contentsline {subsubsection}{线程体}{9}{subsubsection*.3}%
+\contentsline {subsubsection}{构造线程的两种方法}{10}{subsubsection*.4}%
+\contentsline {subsubsection}{题目}{10}{subsubsection*.5}%
+\contentsline {section}{\numberline {1.2}通过Thread类创建线程}{10}{section.1.2}%
+\contentsline {subsection}{\numberline {1.2.1}Thread类}{10}{subsection.1.2.1}%
+\contentsline {subsection}{\numberline {1.2.2}创建线程}{10}{subsection.1.2.2}%
+\contentsline {subsubsection}{问题}{11}{subsubsection*.6}%
+\contentsline {section}{\numberline {1.3}线程的休眠}{11}{section.1.3}%
+\contentsline {subsection}{\numberline {1.3.1}延长主线程}{11}{subsection.1.3.1}%
+\contentsline {subsection}{\numberline {1.3.2}问题}{11}{subsection.1.3.2}%
+\contentsline {section}{\numberline {1.4}Thread类详解}{11}{section.1.4}%
+\contentsline {section}{\numberline {1.5}通过Runnable接口创建线程}{11}{section.1.5}%
+\contentsline {subsection}{\numberline {1.5.1}Runnable使用及特点}{11}{subsection.1.5.1}%
+\contentsline {subsection}{\numberline {1.5.2}问题}{13}{subsection.1.5.2}%
+\contentsline {section}{\numberline {1.6}线程内部的数据共享}{13}{section.1.6}%
+\contentsline {chapter}{\numberline {第二章\hspace {.3em}}线程中}{15}{chapter.2}%
+\contentsline {section}{\numberline {2.1}线程同步的思路}{15}{section.2.1}%
+\contentsline {subsection}{\numberline {2.1.1}多线程的同步控制}{15}{subsection.2.1.1}%
+\contentsline {section}{\numberline {2.2}线程同步的实现方式-Synchronization}{18}{section.2.2}%
+\contentsline {subsection}{\numberline {2.2.1}线程同步}{18}{subsection.2.2.1}%
+\contentsline {subsubsection}{synchronized}{18}{subsubsection*.7}%
+\contentsline {section}{\numberline {2.3}线程的等待和唤醒}{21}{section.2.3}%
+\contentsline {subsection}{\numberline {2.3.1}线程的等待-wait()方法}{21}{subsection.2.3.1}%
+\contentsline {subsection}{\numberline {2.3.2}线程的唤醒-notify()和notifyAll()方法}{21}{subsection.2.3.2}%
+\contentsline {section}{\numberline {2.4}后台线程}{22}{section.2.4}%
+\contentsline {section}{\numberline {2.5}线程的生命周期与死锁}{23}{section.2.5}%
+\contentsline {subsection}{\numberline {2.5.1}线程的生命周期}{23}{subsection.2.5.1}%
+\contentsline {subsection}{\numberline {2.5.2}死锁}{24}{subsection.2.5.2}%
+\contentsline {subsection}{\numberline {2.5.3}控制线程的生命}{24}{subsection.2.5.3}%
+\contentsline {section}{\numberline {2.6}线程的调度}{24}{section.2.6}%
+\contentsline {subsection}{\numberline {2.6.1}线程的优先级}{24}{subsection.2.6.1}%
+\contentsline {chapter}{\numberline {第三章\hspace {.3em}}线程下}{27}{chapter.3}%
+\contentsline {section}{\numberline {3.1}线程安全与线程兼容与对立}{27}{section.3.1}%
+\contentsline {subsection}{\numberline {3.1.1}线程安全}{27}{subsection.3.1.1}%
+\contentsline {subsection}{\numberline {3.1.2}不可变}{27}{subsection.3.1.2}%
+\contentsline {subsection}{\numberline {3.1.3}绝对线程安全}{28}{subsection.3.1.3}%
+\contentsline {subsection}{\numberline {3.1.4}相对线程安全}{28}{subsection.3.1.4}%
+\contentsline {subsection}{\numberline {3.1.5}线程兼容和线程对立}{29}{subsection.3.1.5}%
+\contentsline {section}{\numberline {3.2}线程的安全实现-互斥同步}{30}{section.3.2}%
+\contentsline {subsection}{\numberline {3.2.1}互斥同步}{30}{subsection.3.2.1}%
+\contentsline {section}{\numberline {3.3}线程的安全实现-非阻塞同步}{31}{section.3.3}%
+\contentsline {section}{\numberline {3.4}线程的安全实现-无同步方案}{32}{section.3.4}%
+\contentsline {subsection}{\numberline {3.4.1}无同步方案-可重入代码}{32}{subsection.3.4.1}%
+\contentsline {subsection}{\numberline {3.4.2}无同步方案-线程本地存储}{32}{subsection.3.4.2}%
+\contentsline {section}{\numberline {3.5}锁优化}{33}{section.3.5}%
+\contentsline {subsection}{\numberline {3.5.1}自旋锁}{33}{subsection.3.5.1}%
+\contentsline {subsection}{\numberline {3.5.2}自适应锁}{34}{subsection.3.5.2}%
+\contentsline {subsection}{\numberline {3.5.3}锁消除}{34}{subsection.3.5.3}%
+\contentsline {subsection}{\numberline {3.5.4}锁粗化}{34}{subsection.3.5.4}%
+\contentsline {subsection}{\numberline {3.5.5}偏向锁}{34}{subsection.3.5.5}%
+\contentsline {section}{\numberline {3.6}小结}{34}{section.3.6}%
+\contentsline {chapter}{\numberline {第四章\hspace {.3em}}网络编程上}{35}{chapter.4}%
+\contentsline {section}{\numberline {4.1}URL对象}{35}{section.4.1}%
+\contentsline {subsection}{\numberline {4.1.1}网络基础知识}{35}{subsection.4.1.1}%
+\contentsline {subsection}{\numberline {4.1.2}通过URL读取WWW信息}{36}{subsection.4.1.2}%
+\contentsline {subsection}{\numberline {4.1.3}URL类}{36}{subsection.4.1.3}%
+\contentsline {subsection}{\numberline {4.1.4}构造URL对象}{36}{subsection.4.1.4}%
+\contentsline {subsection}{\numberline {4.1.5}获取URL对象属性}{37}{subsection.4.1.5}%
+\contentsline {section}{\numberline {4.2}URL Connection对象}{37}{section.4.2}%
+\contentsline {subsection}{\numberline {4.2.1}URL Connection}{37}{subsection.4.2.1}%
+\contentsline {section}{\numberline {4.3}Get请求与Post请求}{38}{section.4.3}%
+\contentsline {subsection}{\numberline {4.3.1}发送Get请求}{38}{subsection.4.3.1}%
+\contentsline {subsection}{\numberline {4.3.2}发送POST请求}{38}{subsection.4.3.2}%
+\contentsline {subsection}{\numberline {4.3.3}HttpURLConnection类}{39}{subsection.4.3.3}%
+\contentsline {section}{\numberline {4.4}Socket通信原理}{40}{section.4.4}%
+\contentsline {subsection}{\numberline {4.4.1}TCP传输协议}{40}{subsection.4.4.1}%
+\contentsline {subsection}{\numberline {4.4.2}socket通讯}{40}{subsection.4.4.2}%
+\contentsline {section}{\numberline {4.5}Socket通信实现}{41}{section.4.5}%
+\contentsline {subsection}{\numberline {4.5.1}创建socket}{41}{subsection.4.5.1}%
+\contentsline {subsection}{\numberline {4.5.2}客户端Socket的建立}{41}{subsection.4.5.2}%
+\contentsline {subsection}{\numberline {4.5.3}服务端Socket的建立}{41}{subsection.4.5.3}%
+\contentsline {subsection}{\numberline {4.5.4}打开输入/输出流}{42}{subsection.4.5.4}%
+\contentsline {subsection}{\numberline {4.5.5}关闭socket}{42}{subsection.4.5.5}%
+\contentsline {chapter}{\numberline {第五章\hspace {.3em}}网络编程下}{45}{chapter.5}%
+\contentsline {section}{\numberline {5.1}Socket多客户端通信实现}{45}{section.5.1}%
+\contentsline {subsection}{\numberline {5.1.1}多客户机制}{45}{subsection.5.1.1}%
+\contentsline {section}{\numberline {5.2}数据报通信}{47}{section.5.2}%
+\contentsline {subsection}{\numberline {5.2.1}数据报通信}{47}{subsection.5.2.1}%
+\contentsline {section}{\numberline {5.3}使用数据报进行广播通信}{50}{section.5.3}%
+\contentsline {section}{\numberline {5.4}网络聊天程序}{52}{section.5.4}%
+\contentsline {chapter}{\numberline {第六章\hspace {.3em}}Java虚拟机}{57}{chapter.6}%
+\contentsline {section}{\numberline {6.1}Java虚拟机概念}{57}{section.6.1}%
+\contentsline {subsection}{\numberline {6.1.1}什么是Java虚拟机？}{57}{subsection.6.1.1}%
+\contentsline {subsection}{\numberline {6.1.2}为什么使用JVM？}{57}{subsection.6.1.2}%
+\contentsline {subsection}{\numberline {6.1.3}Java虚拟机的生命周期}{57}{subsection.6.1.3}%
+\contentsline {subsection}{\numberline {6.1.4}JVM的体系结构}{58}{subsection.6.1.4}%
+\contentsline {subsection}{\numberline {6.1.5}JVM中使用的数据类型}{59}{subsection.6.1.5}%
+\contentsline {section}{\numberline {6.2}Java虚拟机内存划分}{59}{section.6.2}%
+\contentsline {subsection}{\numberline {6.2.1}JVM内存区域}{59}{subsection.6.2.1}%
+\contentsline {subsection}{\numberline {6.2.2}程序计数器}{59}{subsection.6.2.2}%
+\contentsline {subsection}{\numberline {6.2.3}虚拟机栈}{60}{subsection.6.2.3}%
+\contentsline {subsection}{\numberline {6.2.4}本地方法栈}{60}{subsection.6.2.4}%
+\contentsline {subsection}{\numberline {6.2.5}堆}{60}{subsection.6.2.5}%
+\contentsline {subsection}{\numberline {6.2.6}方法区}{60}{subsection.6.2.6}%
+\contentsline {section}{\numberline {6.3}Java虚拟机类加载机制}{60}{section.6.3}%
+\contentsline {subsection}{\numberline {6.3.1}虚拟机类加载机制的概念}{60}{subsection.6.3.1}%
+\contentsline {subsection}{\numberline {6.3.2}类的生命周期}{61}{subsection.6.3.2}%
+\contentsline {subsection}{\numberline {6.3.3}类的主动引用}{62}{subsection.6.3.3}%
+\contentsline {subsection}{\numberline {6.3.4}类的被动引用}{62}{subsection.6.3.4}%
+\contentsline {section}{\numberline {6.4}判断对象是否存活算法及对象引用}{62}{section.6.4}%
+\contentsline {subsection}{\numberline {6.4.1}什么是垃圾回收？}{62}{subsection.6.4.1}%
+\contentsline {subsection}{\numberline {6.4.2}引用计数算法}{63}{subsection.6.4.2}%
+\contentsline {subsection}{\numberline {6.4.3}可达性分析算法（根搜索算法）}{63}{subsection.6.4.3}%
+\contentsline {section}{\numberline {6.5}分代垃圾回收}{64}{section.6.5}%
+\contentsline {subsection}{\numberline {6.5.1}分代垃圾回收的提出}{64}{subsection.6.5.1}%
+\contentsline {subsection}{\numberline {6.5.2}年轻代和老年代}{65}{subsection.6.5.2}%
+\contentsline {subsection}{\numberline {6.5.3}年轻代组成部分}{65}{subsection.6.5.3}%
+\contentsline {section}{\numberline {6.6}典型的垃圾收集算法}{65}{section.6.6}%
+\contentsline {subsection}{\numberline {6.6.1}Mark-Sweep（标记-清除））算法}{65}{subsection.6.6.1}%
+\contentsline {subsection}{\numberline {6.6.2}Copying(复制)算法}{65}{subsection.6.6.2}%
+\contentsline {subsection}{\numberline {6.6.3}Mark-Compat（标记整理）算法}{66}{subsection.6.6.3}%
+\contentsline {subsection}{\numberline {6.6.4}Generational Collection（分代收集）算法}{66}{subsection.6.6.4}%
+\contentsline {section}{\numberline {6.7}典型的垃圾收集器}{66}{section.6.7}%
+\contentsline {subsection}{\numberline {6.7.1}Serial/Serial Old}{66}{subsection.6.7.1}%
+\contentsline {subsection}{\numberline {6.7.2}ParNew}{67}{subsection.6.7.2}%
+\contentsline {subsection}{\numberline {6.7.3}Parallel Scavenge}{67}{subsection.6.7.3}%
+\contentsline {subsection}{\numberline {6.7.4}CMS}{67}{subsection.6.7.4}%
+\contentsline {subsection}{\numberline {6.7.5}G1}{67}{subsection.6.7.5}%
+\contentsline {chapter}{\numberline {第七章\hspace {.3em}}深入集合Collection}{69}{chapter.7}%
+\contentsline {section}{\numberline {7.1}集合框架与ArrayList}{69}{section.7.1}%
+\contentsline {subsection}{\numberline {7.1.1}Java集合框架}{69}{subsection.7.1.1}%
+\contentsline {subsection}{\numberline {7.1.2}常用集合类}{69}{subsection.7.1.2}%
+\contentsline {subsection}{\numberline {7.1.3}ArrayList}{70}{subsection.7.1.3}%
+\contentsline {subsection}{\numberline {7.1.4}ArrayList实现分析}{71}{subsection.7.1.4}%
+\contentsline {section}{\numberline {7.2}LinkedList}{73}{section.7.2}%
+\contentsline {subsection}{\numberline {7.2.1}List的适用范围}{78}{subsection.7.2.1}%
+\contentsline {section}{\numberline {7.3}HashMap和HashTable}{79}{section.7.3}%
+\contentsline {subsection}{\numberline {7.3.1}HashMap}{79}{subsection.7.3.1}%
+\contentsline {subsection}{\numberline {7.3.2}HashMap数据结构}{79}{subsection.7.3.2}%
+\contentsline {subsection}{\numberline {7.3.3}HashMap实现分析}{79}{subsection.7.3.3}%
+\contentsline {subsection}{\numberline {7.3.4}HashTable的特点}{82}{subsection.7.3.4}%
+\contentsline {section}{\numberline {7.4}TreeMap与LinkedHashMap}{82}{section.7.4}%
+\contentsline {subsection}{\numberline {7.4.1}TreeMap}{82}{subsection.7.4.1}%
+\contentsline {subsection}{\numberline {7.4.2}TreeMap实现分析}{82}{subsection.7.4.2}%
+\contentsline {subsection}{\numberline {7.4.3}TreeMap的优势}{83}{subsection.7.4.3}%
+\contentsline {subsection}{\numberline {7.4.4}LinkedHashMap}{83}{subsection.7.4.4}%
+\contentsline {subsection}{\numberline {7.4.5}LinkedHashMap实现}{83}{subsection.7.4.5}%
+\contentsline {subsection}{\numberline {7.4.6}Map的适用范围}{84}{subsection.7.4.6}%
+\contentsline {section}{\numberline {7.5}HashSet}{84}{section.7.5}%
+\contentsline {subsection}{\numberline {7.5.1}Set的特点}{84}{subsection.7.5.1}%
+\contentsline {chapter}{\numberline {第八章\hspace {.3em}}反射与代理机制}{85}{chapter.8}%
+\contentsline {section}{\numberline {8.1}Java反射机制Reflection}{85}{section.8.1}%
+\contentsline {subsection}{\numberline {8.1.1}Java类型信息}{85}{subsection.8.1.1}%
+\contentsline {subsection}{\numberline {8.1.2}RTTI}{85}{subsection.8.1.2}%
+\contentsline {subsection}{\numberline {8.1.3}Java反射机制的定义}{85}{subsection.8.1.3}%
+\contentsline {subsection}{\numberline {8.1.4}类Class}{86}{subsection.8.1.4}%
+\contentsline {subsection}{\numberline {8.1.5}利用Class类创建实例}{86}{subsection.8.1.5}%
+\contentsline {subsection}{\numberline {8.1.6}Java反射例子--Method类的invoke}{87}{subsection.8.1.6}%
+\contentsline {section}{\numberline {8.2}Java静态代理}{88}{section.8.2}%
+\contentsline {subsection}{\numberline {8.2.1}代理模式}{88}{subsection.8.2.1}%
+\contentsline {subsection}{\numberline {8.2.2}代理模式一般涉及到的角色}{88}{subsection.8.2.2}%
+\contentsline {subsection}{\numberline {8.2.3}静态代理例子}{88}{subsection.8.2.3}%
+\contentsline {subsection}{\numberline {8.2.4}静态代理的优缺点}{89}{subsection.8.2.4}%
+\contentsline {subsubsection}{优点}{89}{subsubsection*.8}%
+\contentsline {subsubsection}{缺点}{89}{subsubsection*.9}%
+\contentsline {section}{\numberline {8.3}Java动态代理}{90}{section.8.3}%
+\contentsline {subsection}{\numberline {8.3.1}Java动态代理实例}{90}{subsection.8.3.1}%
+\contentsline {subsection}{\numberline {8.3.2}动态代理的特点}{92}{subsection.8.3.2}%
+\contentsline {subsection}{\numberline {8.3.3}动态代理优缺点}{93}{subsection.8.3.3}%
+\contentsline {subsubsection}{优点}{93}{subsubsection*.10}%
+\contentsline {subsubsection}{缺点}{93}{subsubsection*.11}%
+\contentsline {section}{\numberline {8.4}Java反射扩展-jvm加载类原理}{93}{section.8.4}%
+\contentsline {subsection}{\numberline {8.4.1}JVM类加载的种类}{93}{subsection.8.4.1}%
+\contentsline {subsection}{\numberline {8.4.2}类的加载方式}{94}{subsection.8.4.2}%
+\contentsline {subsection}{\numberline {8.4.3}类加载的步骤}{94}{subsection.8.4.3}%
+\contentsline {subsection}{\numberline {8.4.4}ClassLoader的加载顺序}{94}{subsection.8.4.4}%
+\contentsline {subsection}{\numberline {8.4.5}ClassLoader加载Class的过程}{94}{subsection.8.4.5}%
+\contentsline {section}{\numberline {8.5}Java进阶课程总结}{95}{section.8.5}%
+\contentsline {subsection}{\numberline {8.5.1}Java线程}{95}{subsection.8.5.1}%
+\contentsline {subsection}{\numberline {8.5.2}Java的网络编程}{95}{subsection.8.5.2}%
+\contentsline {subsection}{\numberline {8.5.3}集合框架}{95}{subsection.8.5.3}%
+\contentsline {subsection}{\numberline {8.5.4}JVM}{95}{subsection.8.5.4}%

@@ -1,3 +1,12 @@
 \contentsline {section}{\numberline {1}MVP}{1}{section.1}%
 \contentsline {subsection}{\numberline {1.1}MVP概述}{1}{subsection.1.1}%
 \contentsline {subsection}{\numberline {1.2}优缺点}{2}{subsection.1.2}%
+\contentsline {section}{\numberline {2}Android中的MVP}{4}{section.2}%
+\contentsline {subsection}{\numberline {2.1}标准MVP模式}{4}{subsection.2.1}%
+\contentsline {subsection}{\numberline {2.2}MVP常用实例二}{10}{subsection.2.2}%
+\contentsline {subsection}{\numberline {2.3}MVP常用实例改造}{15}{subsection.2.3}%
+\contentsline {subsubsection}{\numberline {2.3.1}普通实例一}{16}{subsubsection.2.3.1}%
+\contentsline {subsubsection}{\numberline {2.3.2}简单MVP实现}{17}{subsubsection.2.3.2}%
+\contentsline {subsubsection}{\numberline {2.3.3}改进-解决内存泄露}{21}{subsubsection.2.3.3}%
+\contentsline {subsubsection}{\numberline {2.3.4}再次改进-简单抽象}{23}{subsubsection.2.3.4}%
+\contentsline {subsubsection}{\numberline {2.3.5}高级抽象-使用注解、工厂模式、代理模式、策略模式}{26}{subsubsection.2.3.5}%

@@ -1,0 +1,37 @@
+\documentclass[a4paper,12pt]{ctexbook}
+
+\usepackage{listings}
+\usepackage{graphicx}
+\usepackage[colorlinks,linkcolor=black]{hyperref}
+\usepackage{indentfirst}
+\usepackage{xcolor}
+\usepackage{geometry}
+\geometry{top=2.5cm,bottom=3.0cm,left=2.0cm,right=2.0cm}
+\lstset{
+	columns=fixed,
+	numbers=left,
+	breaklines=true,
+	frame=shadowbox,
+	commentstyle=\color{gray},
+	rulesepcolor= \color{gray},
+	numberstyle= \small,
+	keywordstyle= \color{red},
+	stringstyle=\rmfamily\slshape\color[RGB]{128,0,0},
+	showstringspaces=false, 
+	morekeywords={my,asm},
+	showtabs=false,
+	tabsize=4,
+	title=\lstname,
+	basicstyle=\ttfamily,
+	language=java
+}
+
+\title{Java算法}
+\author{作者}
+\date{2019}
+
+\begin{document}
+	\maketitle
+	\tableofcontents
+	\include{chapter01}
+\end{document}

@@ -1,4 +1,4 @@
-This is XeTeX, Version 3.14159265-2.6-0.999991 (MiKTeX 2.9.7250 64-bit) (preloaded format=xelatex 2019.11.24)  26 NOV 2019 15:21
+This is XeTeX, Version 3.14159265-2.6-0.999991 (MiKTeX 2.9.7250 64-bit) (preloaded format=xelatex 2019.11.24)  28 NOV 2019 10:53
 entering extended mode
 **./Android中的MVP.tex
 (Android中的MVP.tex
@@ -826,37 +826,61 @@ LaTeX Font Info:    External font `cmex10' loaded for size
 \tf@toc=\write4
 \openout4 = `Android中的MVP.toc'.
 
+ [1
+
+]
 File: image/1.png Graphic file (type bmp)
 <image/1.png>
 File: image/2.png Graphic file (type bmp)
 <image/2.png>
+ [2] [3] (D:\CTEX\MiKTeX\tex/latex/listings\lstlang1.sty
+File: lstlang1.sty 2019/09/10 1.8c listings language file
+)
+
+Package fontspec Info: Could not resolve font "FangSong/BI" (it probably
+(fontspec)             doesn't exist).
 
 
-LaTeX Warning: `!h' float specifier changed to `!ht'.
+Package fontspec Info: Could not resolve font "FangSong/B" (it probably
+(fontspec)             doesn't exist).
 
 
-LaTeX Warning: `!h' float specifier changed to `!ht'.
+Package fontspec Info: Could not resolve font "FangSong/I" (it probably
+(fontspec)             doesn't exist).
 
-[1
 
-] [2]
-Package atveryend Info: Empty hook `BeforeClearDocument' on input line 75.
- [3]
-Package atveryend Info: Empty hook `AfterLastShipout' on input line 75.
+Package fontspec Info: Font family 'FangSong(0)' created for font 'FangSong'
+(fontspec)             with options [Script={CJK}].
+(fontspec)              
+(fontspec)              This font family consists of the following NFSS
+(fontspec)             series/shapes:
+(fontspec)              
+(fontspec)             - 'normal' (m/n) with NFSS spec.:
+(fontspec)             <->"FangSong/OT:script=hani;language=DFLT;"
+(fontspec)             - 'small caps'  (m/sc) with NFSS spec.: 
+
+LaTeX Font Info:    Font shape `TU/SimSun(0)/m/sl' in size <12> not available
+(Font)              Font shape `TU/SimSun(0)/m/it' tried instead on input line 
+108.
+[4] [5] [6] [7] [8] [9] [10] [11] [12] [13] [14] [15] [16] [17] [18] [19]
+[20] [21] [22] [23] [24] [25]
+Package atveryend Info: Empty hook `BeforeClearDocument' on input line 822.
+ [26]
+Package atveryend Info: Empty hook `AfterLastShipout' on input line 822.
  (Android中的MVP.aux)
-Package atveryend Info: Empty hook `AtVeryEndDocument' on input line 75.
-Package atveryend Info: Executing hook `AtEndAfterFileList' on input line 75.
+Package atveryend Info: Empty hook `AtVeryEndDocument' on input line 822.
+Package atveryend Info: Executing hook `AtEndAfterFileList' on input line 822.
 Package rerunfilecheck Info: File `Android中的MVP.out' has not changed.
-(rerunfilecheck)             Checksum: 1BBDF077BA0E9C5F67BDACCD74EA0070.
-Package atveryend Info: Empty hook `AtVeryVeryEnd' on input line 75.
+(rerunfilecheck)             Checksum: AC3427E9875A31F12544123342E6AA5F.
+Package atveryend Info: Empty hook `AtVeryVeryEnd' on input line 822.
  ) 
 Here is how much of TeX's memory you used:
- 26222 strings out of 427240
- 525560 string characters out of 3148342
- 617960 words of memory out of 3000000
- 30489 multiletter control sequences out of 15000+200000
- 536645 words of font info for 62 fonts, out of 3000000 for 9000
+ 26636 strings out of 427240
+ 534406 string characters out of 3148342
+ 906479 words of memory out of 3000000
+ 30886 multiletter control sequences out of 15000+200000
+ 536709 words of font info for 70 fonts, out of 3000000 for 9000
  1348 hyphenation exceptions out of 8191
- 58i,6n,70p,373b,429s stack positions out of 5000i,500n,10000p,200000b,50000s
+ 58i,6n,70p,373b,1765s stack positions out of 5000i,500n,10000p,200000b,50000s
 
-Output written on Android中的MVP.pdf (3 pages).
+Output written on Android中的MVP.pdf (26 pages).

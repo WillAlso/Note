@@ -1,0 +1,37 @@
+\documentclass[a4paper,12pt]{ctexbook}
+
+\usepackage{listings}
+\usepackage{graphicx}
+\usepackage[colorlinks,linkcolor=black]{hyperref}
+\usepackage{indentfirst}
+\usepackage{xcolor}
+\usepackage{geometry}
+\geometry{top=2.5cm,bottom=3.0cm,left=2.0cm,right=2.0cm}
+\lstset{
+	columns=fixed,
+	numbers=left,
+	breaklines=true,
+	frame=shadowbox,
+	commentstyle=\color{gray},
+	rulesepcolor= \color{gray},
+	numberstyle= \small,
+	keywordstyle= \color{red},
+	stringstyle=\rmfamily\slshape\color[RGB]{128,0,0},
+	showstringspaces=false, 
+	morekeywords={my,asm},
+	showtabs=false,
+	tabsize=4,
+	title=\lstname,
+	basicstyle=\ttfamily
+}
+
+\title{Android中的MVVM}
+\author{作者}
+\date{2019}
+
+\begin{document}
+	\maketitle
+	\tableofcontents
+	单向绑定非常简单，就是把Model绑定到View，当我们用JavaScript代码更新Model时，View就会自动更新。
+	有单向绑定，就有双向绑定。如果用户更新了View，Model的数据也自动被更新了，这种情况就是双向绑定。
+\end{document}

@@ -1,1 +1,80 @@
 \chapter{一个简单的Web服务器}
+\section{HTTP}
+超文本传输协议（HyperText Transfer Protocol）是基于“请求-响应”的协议。
+\par HTTP使用可靠地TCP连接，默认使用TCP 80端口。
+\par Web服务器不负责联系客户端或建立到一个客户端的回调连接，客户端或服务端可提前关闭连接。
+\subsection{HTTP请求}
+一个HTTP请求包含：
+\begin{itemize}
+	\item 请求方法——统一资源标识符（Uniform Resource Identifier，URI）——协议/版本
+	\item 请求头
+	\item 实体
+\end{itemize}
+\par HTTP1.1支持7种请求方法：GET、POST、HEAD、OPTIONS、PUT、DELETE和TRACE。
+统一资源定位符（Uniform Resource Locator，URL）实际上是URI的一种类型。
+\par 请求头包含了客户端环境、请求实体正文的相关信息。各个请求头之间使用回车/换行（Carriage Return/LineFeed，CRLF）间隔开。
+\par 在请求头和请求实体正文之间有一个空行，该行只有CRLF符。
+\subsection{HTTP响应}
+HTTP响应三部分：
+\begin{itemize}
+	\item 协议——状态码——描述
+	\item 响应头
+	\item 响应式体段
+\end{itemize}
+\par 响应头和响应实体正文之间只包含了CRLF的一个空行分隔。
+\section{Socket类}
+套接字使应用程序可以从网络中读取数据，可以向网络中写入数据。
+\par Java中的套接字：java.net.Socket，构造函数：
+\par \qquad public Socket(java.lang.String host, int port)
+\par host为远程主机名称或IP地址，参数port是远程应用程序端口号。两者通信：
+\begin{lstlisting}
+Socket socket = new Socket("127.0.0.1", 8080);
+OutputStream os = socket.getOutputStream();
+boolean autoflush = true;
+PrintWriter out = new PrintWriter(socket.getOutputStream(), autoflush);
+BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+
+out.println("GET /index.jsp HTTP/1.1");
+out.println("Host: localhost:8080");
+out.println("Connection: Close");
+out.println();
+
+boolean loop =true;
+StringBuffer sb = new StringBuffer(8096);
+while (loop) {
+	if (in.ready()) {
+		int i = 0;
+		while (i != -1) {
+			i = in.read();
+			sb.append((char) i);
+		}
+		loop = false;
+	}
+	Thread.currentThread().sleep(50);
+}
+System.out.println(sb.toString());
+socket.close();
+\end{lstlisting}
+\subsection{ServerSocket类}
+与Socket不同，当服务器套接字接收到连接请求后，会创建Socket实例来处理与客户端通信。
+\par ServerSocket提供4个构造函数，典型如下：
+\begin{lstlisting}
+public ServerSocket(int port, int backlog, InetAddress bindingAddress)
+\end{lstlisting}
+Port是服务器端口，IP地址一般是127.0.0.1（绑定地址），baklog表示在服务器拒绝接受传入的请求之前，传入的连接请求的最大队列长度。
+\par 这里IP必须是java.net.InetAddress的实例，可以使用静态方法获取：
+\begin{lstlisting}
+InetAddress.getByName("127.0.0.1")
+\end{lstlisting}
+当创建ServerSocket实例后，等待传入的连接请求，可以通过ServerSocket的accept方法完成，只有收到请求后才返回，返回值是一个Socket实例。
+\section{应用程序}
+发送指定目录静态资源，但不发送任何头信息，程序包含三个部分：
+\begin{itemize}
+	\item HttpServer
+	\item Request
+	\item Response
+\end{itemize}
+\subsection{HttpServer}
+
+\subsection{Request}
+\subsection{Response}

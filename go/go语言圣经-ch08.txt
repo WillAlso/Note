@@ -1,0 +1,347 @@
+-------------------------chapter 08 Goroutines和Channels-------------------------
+Go语言中的并发程序可以用两种手段来实现，支持“顺序通信进程”(communicating sequential processes)或被简称为CSP。
+--------------------
+8.1 Goroutines
+  1. 程序启动时，main goroutine运行；
+  2. 在语法上，go语句是一个普通的函数或方法调用前加上关键字go。
+********************
+func main() {
+  go spinner(100 * time.Millisecond)
+  const n = 45
+  fibN := fib(n) // slow
+  fmt.Printf("\rFibonacci(%d) = %d\n", n, fibN)
+}
+********************
+  3. 主函数返回时，所有的goroutine都会被直接打断，程序退出。
+  4. 除了从主函数退出或者直接终止程序之外，没有其它的编程方法能够让一个goroutine来打断另一个的执行；
+  5. 但是之后可以看到一种方式来实现这个目的，通过goroutine之间的通信来让一个goroutine请求其它的goroutine，并让被请求的goroutine自行结束执行。
+--------------------
+8.2 并发的Clock服务
+********************
+import (
+	"io"
+	"log"
+	"net"
+	"time"
+)
+
+func main() {
+	listener, err := net.Listen("tcp", "localhost:8000")
+	if err != nil {
+		log.Fatal(err)
+	}
+	for {
+		conn, err := listener.Accept()
+		if err != nil {
+			log.Print(err) // e.g., connection aborted
+			continue
+		}
+		handleConn(conn) // handle one connection at a time
+	}
+}
+func handleConn(c net.Conn) {
+	defer c.Close()
+	for {
+		_, err := io.WriteString(c, time.Now().Format("15:04:05\n"))
+		if err != nil {
+			return // e.g., client disconnected
+		}
+		time.Sleep(1 * time.Second)
+	}
+}
+********************
+  1. 格式化事件格式化字符串是1月2日下午3点4分5秒零六年UTC-0700。
+  2. 使用go实现简单netcat
+********************
+func main() {
+	conn, err := net.Dial("tcp", "localhost:8000")
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer conn.Close()
+	mustCopy(os.Stdout, conn)
+}
+func mustCopy(dst io.Writer, src io.Reader) {
+	if _, err := io.Copy(dst, src); err != nil {
+		log.Fatal(err)
+	}
+}
+********************
+--------------------
+8.3 并发echo服务
+********************
+func main() {
+  conn, err := net.Dial("tcp", "localhost:8000")
+  if err != nil {
+    log.Fatal(err)
+  }
+  defer conn.Close()
+  go mustCopy(os.Stdout, conn)
+  mustCopy(conn, os.Stdin)
+}
+********************
+8.4 Channels
+一个channel是一个通信机制，它可以让一个goroutine通过它给另一个goroutine发送值信息。
+使用内置的make函数，我们可以创建一个channel：
+ch := make(chan int)
+channel也对应一个make创建的底层数据结构的引用，零值为nil。
+如果两个channel引用的是相同的对象，那么==比较的结果为真。
+在发送语句中， <- 运算符分割channel和要发送的值。在接收语句中， <- 运算符写在channel对象之前。一个不使用接收结果的接收操作也是合法的。
+********************
+ch <- x
+x = <-ch
+<-ch
+********************
+Channel还支持close操作，用于关闭channel，随后对基于该channel的任何发送操作都将导致panic异常。
+对一个已经被close过的channel进行接收操作依然可以接受到之前已经成功发送的数据；如果channel中已经没有数据的话将产生一个零值的数据。
+********************
+close(ch)
+********************
+如果channel的容量大于零，那么该channel就是带缓存的channel。
+********************
+ch = make(chan int) // unbuffered channel
+ch = make(chan int, 0) // unbuffered channel
+ch = make(chan int, 3) // buffered channel with capacity 3
+********************
+--------------------
+8.4.1 不带缓存的Channels
+一个基于无缓存Channels的发送操作将导致发送者goroutine阻塞，直到另一个goroutine在相同的Channels上执行接收操作，当发送的值通过Channels成功传输之后，两个goroutine可以继续执行后面的语句。
+基于无缓存Channels的发送和接收操作将导致两个goroutine做一次同步操作。因为这个原因，无缓存Channels有时候也被称为同步Channels。
+当通过一个无缓存Channels发送数据时，接收者收到数据发生在唤醒发送者goroutine之前。
+********************
+func main() {
+  conn, err := net.Dial("tcp", "localhost:8000")
+  if err != nil {
+    log.Fatal(err)
+  }
+  done := make(chan struct{})
+  go func() {
+    io.Copy(os.Stdout, conn) // NOTE: ignoring errors
+    log.Println("done")
+    done <- struct{}{} // signal the main goroutine
+  }()
+  mustCopy(conn, os.Stdin)
+  conn.Close()
+  <-done // wait for background goroutine to finish
+}
+********************
+当用户关闭了标准输入，主goroutine中的mustCopy函数调用将返回，然后调用conn.Close()关闭读和写方向的网络连接。关闭网络连接中的写方向的连接将导致server程序收到一个文件（end-of-file）结束的信号。
+注：
+  1. 每个消息都有一个值，但是有时候通讯的事实和发生的时刻也同样重要。当我们更希望强调通讯发生的时刻时，我们将它称为消息事件。
+  2. 有些消息事件并不携带额外的信息，它仅仅是用作两个goroutine之间的同步，这时候我们可以用 struct{} 空结构体作为channels元素的类型。
+conn虽然是一个interface类型的值，但是其底层真实类型是 *net.TCPConn ，代表一个TCP连接。一个TCP连接有读和写两个部分，可以使用CloseRead和CloseWrite方法分别关闭它们。
+--------------------
+8.4.2 串联的Channels（Pipeline）
+串联的Channels就是所谓的管道（pipeline）。
+********************
+func main() {
+	naturals := make(chan int)
+	squares := make(chan int)
+	go func() {
+		for x := 0; ; x++ {
+			naturals <- x
+		}
+	}()
+	go func() {
+		for {
+			x := <-naturals
+			squares <- x * x
+		}
+	}()
+	for {
+		fmt.Println(<-squares)
+	}
+}
+********************
+没有办法直接测试一个channel是否被关闭，但是接收操作有一个变体形式：它多接收一个结果。
+********************
+go func() {
+  for {
+    x, ok := <-naturals
+    if !ok {
+      break // channel was closed and drained
+    }
+    squares <- x * x
+    }
+    close(squares)
+}()
+********************
+改进后的程序：
+********************
+go func() {
+  for x := 0; x < 100; x++ {
+    naturals <- x
+  }
+  close(naturals)
+}()
+// Squarer
+go func() {
+  for x := range naturals {
+    squares <- x * x
+  }
+  close(squares)
+}()
+********************
+试图重复关闭一个channel将导致panic异常，试图关闭一个nil值的channel也将导致panic异常。
+--------------------
+8.4.3 单方向的Channel
+********************
+func counter(out chan<- int) {
+	for x := 0; x < 100; x++ {
+		out <- x
+	}
+	close(out)
+}
+func squarer(out chan<- int, in <-chan int) {
+	for v := range in {
+		out <- v * v
+	}
+	close(out)
+}
+func printer(in <-chan int) {
+	for v := range in {
+		fmt.Println(v)
+	}
+}
+func main() {
+	naturals := make(chan int)
+	squares := make(chan int)
+	go counter(naturals)
+	go squarer(squares, naturals)
+	printer(squares)
+}
+********************
+  1. 当一个channel作为一个函数参数时，它一般总是被专门用于只发送或者只接收。
+  2. 类型 chan<- int 表示一个只发送int的channel，只能发送不能接收。相反，类型 <-chan int 表示一个只接收int的channel，只能接收不能发送。
+--------------------
+8.4.4. 带缓存的Channels
+  1. 带缓存的Channel内部持有一个元素队列。队列的最大容量是在调用make函数创建channel时通过第二个参数指定的。
+  ch  = make(chan string, 3
+  2. 向缓存Channel的发送操作就是向内部缓存队列的尾部插入元素，接收操作则是从队列的头部删除元素。如果内部缓存队列是满的，那么发送操作将阻塞直到因另一个goroutine执行接收操作而释放了新的队列空间。
+  3. 获取channel容量和有效长度
+  fmt.Println(cap(ch))
+  fmt.Pringln(len(ch
+  4. 对于下面
+********************
+func mirroredQuery() string {
+responses := make(chan string, 3)
+go func() { responses <- request("asia.gopl.io") }()
+go func() { responses <- request("europe.gopl.io") }()
+go func() { responses <- request("americas.gopl.io") }()
+return <-responses // return the quickest response
+}
+func request(hostname string) (response string) { /* ... */ }
+********************
+如果我们使用了无缓存的channel，那么两个慢的goroutines将会因为没有人接收而被永远卡住。这种情况，称为goroutines泄漏，这将是一个BUG。和垃圾变量不同，泄漏的goroutines并不会被自动回收。
+  5. 无缓存channel更强地保证了每个发送操作与相应的同步接收操作；但是对于带缓存channel，这些操作是解耦的。
+--------------------
+8.5 并发的循环
+  像这种子问题都是完全彼此独立的问题被叫做易并行问题
+  易并行问题是最容易被实现成并行的一类问题，并且最能够享受并发带来的好处，能够随着并行的规模线性地扩展。
+********************
+func makeThumbnails(filenames []string) {
+  for _, f := range filenames {
+    if _, err := thumbnail.ImageFile(f); err != nil {
+      log.Println(err)
+    }
+  }
+}
+//错误
+func makeThumbnails2(filenames []string) {
+  for _, f := range filenames {
+    go thumbnail.ImageFile(f) // NOTE: ignoring errors
+  }
+}
+********************
+执行快的原因：makeThumbnails在它还没有完成工作之前就已经返回了。它启动了所有的goroutine，每一个文件名对应一个，但没有等待它们一直到执行完毕。
+没有什么直接的办法能够等待goroutine完成，但是我们能够使用一个共享的channel将goroutine内通知外部。
+********************
+func makeThumbnails3(filenames []string) {
+  ch := make(chan struct{})
+  for _, f := range filenames {
+    go func(f string) {
+      thumbnail.ImageFile(f) // NOTE: ignoring errors
+      ch <- struct{}{}
+    }(f)
+  }
+  // Wait for goroutines to complete.
+  for range filenames {
+    <-ch
+  }
+}
+********************
+当其中一个线程错误时，返回值处理：
+********************
+func makeThumbnails4(filenames []string) error {
+     errors := make(chan error)
+     for _, f := range filenames {
+     	 go func(f string) {
+	      _, err := thumbnail.ImageFile(f)
+	      errors <- err
+     	 }(f)
+     }
+     for range filenames {
+     	 if err := <-errors; err != nil {
+     	    return err // NOTE: incorrect: goroutine leak!
+     	 }
+     }
+     return nil
+}
+********************
+但是，当它遇到第一个非nil的error时会直接将error返回到调用方，使得没有一个goroutine去排空errors channel。
+解决办法：用一个具有合适大小的buffered channel，创建一个另外的goroutine，当main goroutine返回第一个错误的同时去排空channel。
+********************
+func makeThumbnails5(filenames []string) (thumbfiles []string, err error) {
+	type item struct {
+		thumbfile string
+		err       error
+	}
+	ch := make(chan item, len(filenames))
+	for _, f := range filenames {
+		go func(f string) {
+			var it item
+			it.thumbfile, it.err = thumbnail.ImageFile(f)
+			ch <- it
+		}(f)
+	}
+	for range filenames {
+		it := <-ch
+		if it.err != nil {
+			return nil, it.err
+		}
+		thumbfiles = append(thumbfiles, it.thumbfile)
+	}
+	return thumbfiles, nil
+}
+********************
+最终版本：
+********************
+func makeThumbnails6(filenames <-chan string) int64 {
+	sizes := make(chan int64)
+	var wg sync.WaitGroup // number of working goroutines
+	for f := range filenames {
+		wg.Add(1)
+		// worker
+		go func(f string) {
+			defer wg.Done()
+			thumb, err := thumbnail.ImageFile(f)
+			if err != nil {
+				log.Println(err)
+				return
+			}
+			info, _ := os.Stat(thumb) // OK to ignore error
+			sizes <- info.Size()
+		}(f)
+	}
+	// closer
+	go func() {
+		wg.Wait()
+		close(sizes)
+	}()
+	var total int64
+	for size := range sizes {
+		total += size
+	}
+	return total
+}
+********************

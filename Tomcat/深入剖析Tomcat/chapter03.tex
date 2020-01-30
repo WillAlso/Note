@@ -1,0 +1,458 @@
+\chapter{连接器}
+Catalina两个主要板块：连接器（connector）和容器（container）。\\
+连接器解析HTTP请求头，使servlet实例能够获取到请求头、cookie和请求参数/值等信息。
+\section{StringManager}
+Tomcat处理错误消息的方法是将错误信息存储在一个properties文件中，便于读取和编辑，但是随着类的暴增，错误信息的激增，不方便维护，因此将properties划分到不同的包中，会产生StringManager多个实例。可以采用单例模式减少资源的消耗，并且使用Hashtable保存该单个实例。
+\section{应用程序}
+3个模块：连接器模块、启动模块和核心模块。\par
+启动模块：只有一个类（Bootstrap），负责启动应用程序。\par
+连接器模块5类：
+\begin{itemize}
+	\item 连接器及其支持类（HttpConnector和HttpProcessor）
+	\item 表示HTTP请求的类（HttpRequest）及其支持类
+	\item 表示HTTP响应的类（HttpResponse）及其支持类
+	\item 外观类（HttpRequestFacade和HTTPResponseFacade）
+	\item 常量类
+\end{itemize}
+\par 核心模块：servletProcessor类和staticResourceProcessor。
+\par 注：
+\par HTTP请求对象使用HTTPRequest类表示，在调用servlet的service()时，HTTPRequest会被向上转型，因此必须正确地设置每一个HTTPRequest会用到的参数：URI、查询字符串、参数、Cookie和其他请求头。但连接器并不知道servlet会使用哪些，所以连接器必须解析所有从HTTP请求中获取的所有信息。
+\par 解析HTTP请求设计开销大的字符串操作，因此可以让连接器只解析用到的数据。
+\par Tomcat默认连接器和本节使用SocketInputStream类从套接字的InputStream中读取字节流。SocketInputStream的readRequestLine()会返回HTTP请求中第一行
+内容（必须在readHeader()前调用），每回调用readHeader()会返回一个名/值对，可以重复调用直到获取所有请求头信息。两者返回值分别为HttpRequestLine实例和HttpHeader对象。
+\par 等待HTTP请求由HTTPConnector完成，创建Request和Response由HttpProcessor完成。
+HttpProcessor使用parse()解析HTTP请求行和请求头信息，填充到HttpRequest对象的成员变量中，但不负责解析请求体和查询字符串，这些由HttpRequest完成。
+\subsection{启动应用程序}
+\begin{lstlisting}
+public final class Bootstrap {
+	public static void main(String[] args) {
+		HttpConnector connector = new HttpConnector();
+		connector.start();
+	}
+}
+\end{lstlisting}
+实例化HttpConnector，并启动线程。
+\begin{lstlisting}
+public class HttpConnector implements Runnable {
+	
+	boolean stopped;
+	private String scheme = "http";
+	
+	public String getScheme() {
+		return scheme;
+	}
+	
+	public void run() {
+		ServerSocket serverSocket = null;
+		int port = 8080;
+		try {
+			serverSocket =  new ServerSocket(port, 1, InetAddress.getByName("127.0.0.1"));
+		}
+		catch (IOException e) {
+			e.printStackTrace();
+			System.exit(1);
+		}
+		while (!stopped) {
+			// Accept the next incoming connection from the server socket
+			Socket socket = null;
+			try {
+				socket = serverSocket.accept();
+			}
+			catch (Exception e) {
+				continue;
+			}
+			// Hand this socket off to an HttpProcessor
+			HttpProcessor processor = new HttpProcessor(this);
+			processor.process(socket);
+		}
+	}
+	
+	public void start() {
+		Thread thread = new Thread(this);
+		thread.start();
+	}
+}
+\end{lstlisting}
+\subsection{HttpConnector类}
+HttpConnector实现了java.lang.Runnable接口。
+\par HttpProcessor类的process()接受传入的HTTP请求的套接字，然后完成下面4个操作：
+\begin{itemize}
+	\item 创建一个HttpRequest对象；
+	\item 创建一个HttpResponse对象；
+	\item 解析HTTP请求的第一行内容的请求头信息，填充HttpRequest对象；
+	\item 将HttpRequest对象和HttpResponse对象传递给servletProcessor或
+	StaticResourceProcessor的process()。
+\end{itemize}
+HttpProcessor的process()方法：
+\begin{lstlisting}
+public void process(Socket socket) {
+	SocketInputStream input = null;
+	OutputStream output = null;
+	try {
+		input = new SocketInputStream(socket.getInputStream(), 2048);
+		output = socket.getOutputStream();
+		
+		// create HttpRequest object and parse
+		request = new HttpRequest(input);
+		
+		// create HttpResponse object
+		response = new HttpResponse(output);
+		response.setRequest(request);
+		
+		response.setHeader("Server", "Pyrmont Servlet Container");
+		
+		parseRequest(input, output);
+		parseHeaders(input);
+		
+		//check if this is a request for a servlet or a static resource
+		//a request for a servlet begins with "/servlet/"
+		if (request.getRequestURI().startsWith("/servlet/")) {
+			ServletProcessor processor = new ServletProcessor();
+			processor.process(request, response);
+		}
+		else {
+			StaticResourceProcessor processor = new StaticResourceProcessor();
+			processor.process(request, response);
+		}
+		
+		// Close the socket
+		socket.close();
+		// no shutdown for this application
+	}
+	catch (Exception e) {
+		e.printStackTrace();
+	}
+}
+\end{lstlisting}
+\par 先获取套接字的输入输出流，然后创建一个HttpRequest实例和一个HttpResponse实例，然后HttpRequest实例赋值给HTTPResponse实例；
+\par 发送响应头信息，然后会调用setHeader()设置头信息，再调用私有方法解析请求，
+可以根据URI模式判断是Servlet还是静态资源，最后关闭套接字。
+\subsection{创建HttpRequest对象}
+HttpRequest的请求头、Cookie和请求参数数据：
+\begin{lstlisting}
+protected HashMap headers = new HashMap();
+protected ArrayList cookies = new ArrayList();
+protected ParameterMap parameters = null;
+\end{lstlisting}
+\begin{enumerate}
+	\item 读取套接字的输入流\\
+	可以按照前面的java.io.InputStream类的read()方法进行获取方法、URI、HTTP协议的版本信息。
+	\begin{lstlisting}
+byte[] buffer = new byte[2048];
+try {
+	i = input.read(buffer);
+}
+	\end{lstlisting}
+	这里使用SocketInputStream进行解析，使用它是为了调用其方法readRequestLine()和readHeader()：
+	\begin{lstlisting}
+SocketInputStream input = null;
+OutputStream output = null;
+try {
+	input = new SocketInputStream(socket.getInputStream(), 2048);
+	//......
+}
+	\end{lstlisting}
+	\item 解析请求行\\
+	HttpProcessor的process()会调用私有方法parseRequest()解析请求行，
+	请求行的URI可以包含0或多个请求参数。\\
+	在servlet/JSP中，参数名jsessionid用于携带一个会话标识符，会话标识符通常是作为Cookie嵌入的，但当浏览器禁用Cookie时，可以将它嵌入到查询符中。
+	\begin{lstlisting}
+ private void parseRequest(SocketInputStream input, OutputStream output)
+throws IOException, ServletException {
+	
+	// Parse the incoming request line
+	input.readRequestLine(requestLine);
+	String method =
+	new String(requestLine.method, 0, requestLine.methodEnd);
+	String uri = null;
+	String protocol = new String(requestLine.protocol, 0, requestLine.protocolEnd);
+	
+	// Validate the incoming request line
+	if (method.length() < 1) {
+		throw new ServletException("Missing HTTP request method");
+	}
+	else if (requestLine.uriEnd < 1) {
+		throw new ServletException("Missing HTTP request URI");
+	}
+	// Parse any query parameters out of the request URI
+	int question = requestLine.indexOf("?");
+	if (question >= 0) {
+		request.setQueryString(new String(requestLine.uri, question + 1,
+		requestLine.uriEnd - question - 1));
+		uri = new String(requestLine.uri, 0, question);
+	}
+	else {
+		request.setQueryString(null);
+		uri = new String(requestLine.uri, 0, requestLine.uriEnd);
+	}
+	
+	
+	// Checking for an absolute URI (with the HTTP protocol)
+	if (!uri.startsWith("/")) {
+		int pos = uri.indexOf("://");
+		// Parsing out protocol and host name
+		if (pos != -1) {
+			pos = uri.indexOf('/', pos + 3);
+			if (pos == -1) {
+				uri = "";
+			}
+			else {
+				uri = uri.substring(pos);
+			}
+		}
+	}
+	
+	// Parse any requested session ID out of the request URI
+	String match = ";jsessionid=";
+	int semicolon = uri.indexOf(match);
+	if (semicolon >= 0) {
+		String rest = uri.substring(semicolon + match.length());
+		int semicolon2 = rest.indexOf(';');
+		if (semicolon2 >= 0) {
+			request.setRequestedSessionId(rest.substring(0, semicolon2));
+			rest = rest.substring(semicolon2);
+		}
+		else {
+			request.setRequestedSessionId(rest);
+			rest = "";
+		}
+		request.setRequestedSessionURL(true);
+		uri = uri.substring(0, semicolon) + rest;
+	}
+	else {
+		request.setRequestedSessionId(null);
+		request.setRequestedSessionURL(false);
+	}
+	
+	// Normalize URI (using String operations at the moment)
+	String normalizedUri = normalize(uri);
+	
+	// Set the corresponding request properties
+	((HttpRequest) request).setMethod(method);
+	request.setProtocol(protocol);
+	if (normalizedUri != null) {
+		((HttpRequest) request).setRequestURI(normalizedUri);
+	}
+	else {
+		((HttpRequest) request).setRequestURI(uri);
+	}
+	
+	if (normalizedUri == null) {
+		throw new ServletException("Invalid URI: " + uri + "'");
+	}
+}
+\end{lstlisting}
+首先会调用SocketInputStream类的readRequestLine()方法，填充HttpRequestLine实例；\\
+然后判断URI是否包含参数，如果包含参数，对参数进行处理，否则直接当做url处理。\\
+查询字符串可能会包含一个会话标识符jsessionid，若存在参数jsessionid，则表明会话标识符在查询字符串中，而不再Cookie中。\\
+然后，会将URI传入到normalize()方法中，对非正常URL进行修正。
+\item 解析请求头\\
+\begin{itemize}
+	\item 可以通过其类的无参构造函数创建一个HttpHeader实例；
+	\item 创建了HttpHeader实例后，可以将其传递给SocketInputStream的readHeader()方法，然后会填充HttpHeader对象。
+	\item 要获取请求头的名字和值，可以使用
+	\begin{lstlisting}
+String name = new String(header.name, 0, header.nameEnd);
+String value = new String(header.value, 0, header.valueEnd);
+	\end{lstlisting}
+	\item parseHeaders()会有一个while循环，直到读完为止。
+	\item 另外，一些请求头包含属性设置信息，如“content-length”和“cookies”
+\end{itemize}
+\item 解析Cookie\\
+Cookie是由浏览器作为HTTP请求头的一部分发送的，对Cookie的解析可以通过org.apache.catalina.util.RequestUtil类的parseCookieHeader()方法完成。
+\begin{lstlisting}
+public static Cookie[] parseCookieHeader(String header) {
+	
+	if ((header == null) || (header.length() < 1))
+	return (new Cookie[0]);
+	
+	ArrayList cookies = new ArrayList();
+	while (header.length() > 0) {
+		int semicolon = header.indexOf(';');
+		if (semicolon < 0)
+		semicolon = header.length();
+		if (semicolon == 0)
+		break;
+		String token = header.substring(0, semicolon);
+		if (semicolon < header.length())
+		header = header.substring(semicolon + 1);
+		else
+		header = "";
+		try {
+			int equals = token.indexOf('=');
+			if (equals > 0) {
+				String name = token.substring(0, equals).trim();
+				String value = token.substring(equals+1).trim();
+				cookies.add(new Cookie(name, value));
+			}
+		} catch (Throwable e) {
+			;
+		}
+	}
+	
+	return ((Cookie[]) cookies.toArray(new Cookie[cookies.size()]));
+	
+}
+\end{lstlisting}
+\item 获取参数
+在调用javax.servlet.http.HttpservletRequest的getParameter()、
+getParameterMap()、getParameterNames()或getParameterValues()方法
+之前，都不需要解析查询字符串或HTTP请求体来获得参数，因此在HttpRequest类中，这4个方法实现都会先调用parseParameter()方法。\\
+参数只解析一次，HTTPRequest中使用一个parsed判断是否完成解析。\\
+参数可以出现在查询字符串或请求体中，若使用GET方法请求，所有参数在查询字符串中，若使用POST，则请求体中也可能会有参数。\\
+这里使用java.util.HashMap的子类ParameterMap存放参数，有一个locked判断是否可以修改。
+\begin{lstlisting}
+public final class ParameterMap extends HashMap {
+	
+	public ParameterMap() {
+		super();
+	}
+	
+	public ParameterMap(int initialCapacity) {
+		super(initialCapacity);
+	}
+
+	public ParameterMap(int initialCapacity, float loadFactor) {
+		super(initialCapacity, loadFactor);
+	}
+	
+	public ParameterMap(Map map) {
+		super(map);
+	}
+	
+	private boolean locked = false;
+
+	public boolean isLocked() {
+		
+		return (this.locked);
+		
+	}
+
+	public void setLocked(boolean locked) {	
+		this.locked = locked;
+	}
+
+
+	public void clear() {
+		if (locked)
+		throw new IllegalStateException
+		(sm.getString("parameterMap.locked"));
+		super.clear();
+	}
+
+	public Object put(Object key, Object value) {
+		if (locked)
+		throw new IllegalStateException
+		(sm.getString("parameterMap.locked"));
+		return (super.put(key, value));
+	}
+
+	public void putAll(Map map) {
+		if (locked)
+		throw new IllegalStateException
+		(sm.getString("parameterMap.locked"));
+		super.putAll(map);
+	}
+
+	public Object remove(Object key) {
+		if (locked)
+		throw new IllegalStateException
+		(sm.getString("parameterMap.locked"));
+		return (super.remove(key));
+	}
+}
+\end{lstlisting}
+由于参数可以在查询字符串或HTTP请求体中，因此parseParameters()必须对二者检查，当解析完成时，参数会存储到对象变量parameters中，下面是解析过程代码：
+\begin{lstlisting}
+protected void parseParameters() {
+	if (parsed)
+		return;
+	ParameterMap results = parameters;
+	if (results == null)
+		results = new ParameterMap();
+	results.setLocked(false);
+	String encoding = getCharacterEncoding();
+	if (encoding == null)
+		encoding = "ISO-8859-1";
+	
+	// Parse any parameters specified in the query string
+	String queryString = getQueryString();
+	try {
+		RequestUtil.parseParameters(results, queryString, encoding);
+	}
+	catch (UnsupportedEncodingException e) {
+		;
+	}
+	
+	// Parse any parameters specified in the input stream
+	String contentType = getContentType();
+	if (contentType == null)
+		contentType = "";
+	int semicolon = contentType.indexOf(';');
+	if (semicolon >= 0) {
+		contentType = contentType.substring(0, semicolon).trim();
+	}
+	else {
+		contentType = contentType.trim();
+	}
+	if ("POST".equals(getMethod()) && (getContentLength() > 0)
+	&& "application/x-www-form-urlencoded".equals(contentType)) {
+		try {
+			int max = getContentLength();
+			int len = 0;
+			byte buf[] = new byte[getContentLength()];
+			ServletInputStream is = getInputStream();
+			while (len < max) {
+				int next = is.read(buf, len, max - len);
+				if (next < 0 ) {
+					break;
+				}
+				len += next;
+			}
+			is.close();
+			if (len < max) {
+				throw new RuntimeException("Content length mismatch");
+			}
+			RequestUtil.parseParameters(results, buf, encoding);
+		}
+		catch (UnsupportedEncodingException ue) {
+			;
+		}
+		catch (IOException e) {
+			throw new RuntimeException("Content read fail");
+		}
+	}
+	
+	// Store the final results
+	results.setLocked(true);
+	parsed = true;
+	parameters = results;
+}
+\end{lstlisting}
+首先会判断是否解析过参数，如果没有，则进行解析；\\
+打开parameterMap的锁，再检查字符串encoding，若为null，则设置为"ISO-8859-1"，然后使用org.apache.Catalina.util.RequestUtil的parseParameters()完成。\\
+然后，parseParameters()会检查HTTP请求体是否包含参数，若使用POST，请求体包含参数，且“content-length”的值会大于0，“content-type”的值为“pplication/x-www-form-urlencoded”。
+\end{enumerate}
+\subsection{创建HttpResponse对象}
+这里为了解决print()和println()不会自动将结果发送到客户端，使用一个新的
+writer来flush()数据，这里可以使用ResponseStream的帝乡来实例化ResponseWriter，（实际上使用了java.io.OutputStreamWriter）告诉writer输出流，并实现自动发送结果。\\
+使用OutputStreamWriter会将传入的字符转换为使用指定字符集的字节数组。
+\begin{lstlisting}
+ public PrintWriter getWriter() throws IOException {
+	ResponseStream newStream = new ResponseStream(this);
+	newStream.setCommit(false);
+	OutputStreamWriter osr =
+		new OutputStreamWriter(newStream, getCharacterEncoding());
+	writer = new ResponseWriter(osr);
+	return writer;
+}
+\end{lstlisting}
+\subsection{静态资源处理器和servlet处理器}
+与之前的处理servlet的方法类似，只有一个方法：process()，但是不同的是，这里的参数是HttpRequest和HttpResponse，而不是Request和Response，并且这里使用外观类作为调用后，使用finshResponse()处理连接。
+\begin{lstlisting}
+servlet = (Servlet) myClass.newInstance();
+HttpRequestFacade requestFacade = new HttpRequestFacade(request);
+HttpResponseFacade responseFacade = new HttpResponseFacade(response);
+servlet.service(requestFacade, responseFacade);
+((HttpResponse) response).finishResponse();
+\end{lstlisting}

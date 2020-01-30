@@ -1,0 +1,454 @@
+\chapter{一个简单的servlet容器}
+\section{javax.servlet.Servlet接口}
+Servlet接口的5个方法：
+\begin{lstlisting}
+void init(ServletConfig var1) throws ServletException;
+ServletConfig getServletConfig();
+void service(ServletRequest var1, ServletResponse var2) throws ServletException, IOException;
+String getServletInfo();
+void destroy();
+\end{lstlisting}
+其中init()、service()和destroy()与生命周期有关，实例化servlet后会调用init()方法，只调用1次，然后执行service()，并且会被多次调用。
+\par 在servlet移除前，会调用destroy()，清除自身持有的资源。
+\section{应用程序1}
+一个完整的servlet责任：
+\begin{enumerate}
+	\item 第一次调用，使用init()初始化；
+	\item 针对每一个request请求，创建一个javax.serlvet.ServletRequest和javax.serlvet.ServletResponse实例；
+	\item 调用service()，将ServletRequest和ServletResponse作为参数传入；
+	\item 当关闭servlet，调用destroy()，卸载servlet。
+\end{enumerate}
+\subsection{HttpServer1类}
+既可以处理静态资源请求，也可以处理servlet资源请求。
+\begin{lstlisting}
+public class HttpServer1 {
+	
+	/** WEB_ROOT is the directory where our HTML and other files reside.
+	*  For this package, WEB_ROOT is the "webroot" directory under the working
+	*  directory.
+	*  The working directory is the location in the file system
+	*  from where the java command was invoked.
+	*/
+	// shutdown command
+	private static final String SHUTDOWN_COMMAND = "/SHUTDOWN";
+	
+	// the shutdown command received
+	private boolean shutdown = false;
+	
+	public static void main(String[] args) {
+		HttpServer1 server = new HttpServer1();
+		server.await();
+	}
+	
+	public void await() {
+		ServerSocket serverSocket = null;
+		int port = 8080;
+		try {
+			serverSocket =  new ServerSocket(port, 1, InetAddress.getByName("127.0.0.1"));
+		}
+		catch (IOException e) {
+			e.printStackTrace();
+			System.exit(1);
+		}
+		
+		// Loop waiting for a request
+		while (!shutdown) {
+			Socket socket = null;
+			InputStream input = null;
+			OutputStream output = null;
+			try {
+				socket = serverSocket.accept();
+				input = socket.getInputStream();
+				output = socket.getOutputStream();
+				
+				// create Request object and parse
+				Request request = new Request(input);
+				request.parse();
+				
+				// create Response object
+				Response response = new Response(output);
+				response.setRequest(request);
+				
+				// check if this is a request for a servlet or a static resource
+				// a request for a servlet begins with "/servlet/"
+				if (request.getUri().startsWith("/servlet/")) {
+					ServletProcessor1 processor = new ServletProcessor1();
+					processor.process(request, response);
+				}
+				else {
+					StaticResourceProcessor processor = new StaticResourceProcessor();
+					processor.process(request, response);
+				}
+				
+				// Close the socket
+				socket.close();
+				//check if the previous URI is a shutdown command
+				shutdown = request.getUri().equals(SHUTDOWN_COMMAND);
+			}
+			catch (Exception e) {
+				e.printStackTrace();
+				System.exit(1);
+			}
+		}
+	}
+}
+\end{lstlisting}
+\subsection{Request类}
+表示servlet的service()方法的参数request对象，这里只实现一部分。
+\begin{lstlisting}
+public class Request implements ServletRequest {
+	
+	private InputStream input;
+	private String uri;
+	
+	public Request(InputStream input) {
+		this.input = input;
+	}
+	
+	public String getUri() {
+		return uri;
+	}
+	
+	private String parseUri(String requestString) {
+		int index1, index2;
+		index1 = requestString.indexOf(' ');
+		if (index1 != -1) {
+			index2 = requestString.indexOf(' ', index1 + 1);
+			if (index2 > index1)
+			return requestString.substring(index1 + 1, index2);
+		}
+		return null;
+	}
+	
+	public void parse() {
+		// Read a set of characters from the socket
+		StringBuffer request = new StringBuffer(2048);
+		int i;
+		byte[] buffer = new byte[2048];
+		try {
+			i = input.read(buffer);
+		}
+		catch (IOException e) {
+			e.printStackTrace();
+			i = -1;
+		}
+		for (int j=0; j<i; j++) {
+			request.append((char) buffer[j]);
+		}
+		System.out.print(request.toString());
+		uri = parseUri(request.toString());
+	}
+	
+	/* implementation of the ServletRequest*/
+	public Object getAttribute(String attribute) {
+		return null;
+	}
+	
+	public Enumeration getAttributeNames() {
+		return null;
+	}
+	
+	public String getRealPath(String path) {
+		return null;
+	}
+	
+	public RequestDispatcher getRequestDispatcher(String path) {
+		return null;
+	}
+	
+	public boolean isSecure() {
+		return false;
+	}
+	
+	public String getCharacterEncoding() {
+		return null;
+	}
+	
+	public int getContentLength() {
+		return 0;
+	}
+	
+	public String getContentType() {
+		return null;
+	}
+	
+	public ServletInputStream getInputStream() throws IOException {
+		return null;
+	}
+	
+	public Locale getLocale() {
+		return null;
+	}
+	
+	public Enumeration getLocales() {
+		return null;
+	}
+	
+	public String getParameter(String name) {
+		return null;
+	}
+	
+	public Map getParameterMap() {
+		return null;
+	}
+	
+	public Enumeration getParameterNames() {
+		return null;
+	}
+	
+	public String[] getParameterValues(String parameter) {
+		return null;
+	}
+	
+	public String getProtocol() {
+		return null;
+	}
+	
+	public BufferedReader getReader() throws IOException {
+		return null;
+	}
+	
+	public String getRemoteAddr() {
+		return null;
+	}
+	
+	public String getRemoteHost() {
+		return null;
+	}
+	
+	public String getScheme() {
+		return null;
+	}
+	
+	public String getServerName() {
+		return null;
+	}
+	
+	public int getServerPort() {
+		return 0;
+	}
+	
+	public void removeAttribute(String attribute) {
+	}
+	
+	public void setAttribute(String key, Object value) {
+	}
+	
+	public void setCharacterEncoding(String encoding)
+	throws UnsupportedEncodingException {
+	}
+}
+\end{lstlisting}
+\subsection{Response类}
+与Request类似，这里只有部分实现，getWriter()实现。
+\begin{lstlisting}
+public class Response implements ServletResponse {
+	
+	private static final int BUFFER_SIZE = 1024;
+	Request request;
+	OutputStream output;
+	PrintWriter writer;
+	
+	public Response(OutputStream output) {
+		this.output = output;
+	}
+	
+	public void setRequest(Request request) {
+		this.request = request;
+	}
+	
+	/* This method is used to serve a static page */
+	public void sendStaticResource() throws IOException {
+		byte[] bytes = new byte[BUFFER_SIZE];
+		FileInputStream fis = null;
+		try {
+			/* request.getUri has been replaced by request.getRequestURI */
+			File file = new File(Constants.WEB_ROOT, request.getUri());
+			fis = new FileInputStream(file);
+			/*
+			HTTP Response = Status-Line
+			*(( general-header | response-header | entity-header ) CRLF)
+			CRLF
+			[ message-body ]
+			Status-Line = HTTP-Version SP Status-Code SP Reason-Phrase CRLF
+			*/
+			int ch = fis.read(bytes, 0, BUFFER_SIZE);
+			while (ch!=-1) {
+				output.write(bytes, 0, ch);
+				ch = fis.read(bytes, 0, BUFFER_SIZE);
+			}
+		}
+		catch (FileNotFoundException e) {
+			String errorMessage = "HTTP/1.1 404 File Not Found\r\n" +
+			"Content-Type: text/html\r\n" +
+			"Content-Length: 23\r\n" +
+			"\r\n" +
+			"<h1>File Not Found</h1>";
+			output.write(errorMessage.getBytes());
+		}
+		finally {
+			if (fis!=null)
+			fis.close();
+		}
+	}
+	
+	
+	/** implementation of ServletResponse  */
+	public void flushBuffer() throws IOException {
+	}
+	
+	public int getBufferSize() {
+		return 0;
+	}
+	
+	public String getCharacterEncoding() {
+		return null;
+	}
+	
+	public Locale getLocale() {
+		return null;
+	}
+	
+	public ServletOutputStream getOutputStream() throws IOException {
+		return null;
+	}
+	
+	public PrintWriter getWriter() throws IOException {
+		// autoflush is true, println() will flush,
+		// but print() will not.
+		writer = new PrintWriter(output, true);
+		return writer;
+	}
+	
+	public boolean isCommitted() {
+		return false;
+	}
+	
+	public void reset() {}
+	public void resetBuffer() {}
+	public void setBufferSize(int size) {}
+	public void setContentLength(int length) {}
+	public void setContentType(String type) {}
+	public void setLocale(Locale locale) {}
+}
+\end{lstlisting}
+如果PrintWriter()的第二个参数为真，对于println()的任何调用都会刷新输出，但是print()不会刷新输出，因此如果在service()中使用print()不会发送给浏览器。
+\subsection{StaticResourceProcessor}
+这里直接调用response.sendStaticResource()处理。
+\begin{lstlisting}
+public class StaticResourceProcessor {
+	
+	public void process(Request request, Response response) {
+		try {
+			response.sendStaticResource();
+		}
+		catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+}
+\end{lstlisting}
+\subsection{ServletProcessor1}
+\begin{lstlisting}
+public class ServletProcessor1 {
+	
+	public void process(Request request, Response response) {
+		
+		String uri = request.getUri();
+		String servletName = uri.substring(uri.lastIndexOf("/") + 1);
+		URLClassLoader loader = null;
+		
+		try {
+			// create a URLClassLoader
+			URL[] urls = new URL[1];
+			URLStreamHandler streamHandler = null;
+			File classPath = new File(Constants.WEB_ROOT);
+			// the forming of repository is taken from the createClassLoader method in
+			// org.apache.catalina.startup.ClassLoaderFactory
+			String repository = (new URL("file", null, classPath.getCanonicalPath() + File.separator)).toString() ;
+			// the code for forming the URL is taken from the addRepository method in
+			// org.apache.catalina.loader.StandardClassLoader class.
+			urls[0] = new URL(null, repository, streamHandler);
+			loader = new URLClassLoader(urls);
+		}
+		catch (IOException e) {
+			System.out.println(e.toString() );
+		}
+		Class myClass = null;
+		try {
+			myClass = loader.loadClass(servletName);
+		}
+		catch (ClassNotFoundException e) {
+			System.out.println(e.toString());
+		}
+		
+		Servlet servlet = null;
+		
+		try {
+			servlet = (Servlet) myClass.newInstance();
+			servlet.service((ServletRequest) request, (ServletResponse) response);
+		}
+		catch (Exception e) {
+			System.out.println(e.toString());
+		}
+		catch (Throwable e) {
+			System.out.println(e.toString());
+		}
+		
+	}
+}
+\end{lstlisting}
+URI的格式如：/serlvet/servletName，并通过字符串截取获取servletName；\\
+为了载入类，创建一个类加载器java.net.URLClassLoader，是java.lang.ClassLoader直接子类，可以使用它的loadClass()载入servlet类；
+\begin{lstlisting}
+public URLClassLoader(URL[] urls)
+\end{lstlisting}
+当载入类时要指明在哪查找类，若以“/”结尾，则指向目录，否则指向一个JAR文件；这里把目录称为仓库（repository）。\\
+这里使用下面URL构造函数：
+\begin{lstlisting}
+public URL(String protocol, String host, String file) throws MalformedURLException
+//或
+public URL(URL context, String spec, URLStreamHandler handler) throws MalformedURLException
+\end{lstlisting}
+如果只使用new URL(null, aString, null)不知道使用哪个构造函数，因此使用上述例子中URLStreamHandler区别构造函数。\\
+加载类后，然后使用newInstance()创建新的实例，并调用它的服务程序service()。
+\section{应用程序2}
+\begin{lstlisting}
+servlet = (Servlet) myClass.newInstance();
+servlet.service((ServletRequest) request, (ServletResponse) response);
+\end{lstlisting}
+上述代码使用了向上转型，但是这是不安全的做法，因为了解此servlet容器内部结构的程序员，可以将ServletRequest和ServletResponse向下转型，就可以调用它们的公共方法。\\
+不能将parse()和sendStaticResource()设置为private，但这两个方法在Servlet又应当是不可用，所以可以使用外观模式。
+\par 添加两个外观类：RequestFacade和ResponseFacade，前者实现servletRequest接口，在其构造函数中需要指定一个Request对象传递给ServletRequest对象引用（private）。然后将外观类传递给service()方法，这里Servlet仍可以向下转型RequestFacade对象，但只能访问ServletRequest提供的方法。
+\begin{lstlisting}
+public class RequestFacade implements ServletRequest {
+	
+	private ServletRequest request = null;
+	
+	public RequestFacade(Request request) {
+		this.request = request;
+	}
+	
+	/* implementation of the ServletRequest*/
+	public Object getAttribute(String attribute) {
+		return request.getAttribute(attribute);
+	}
+	
+	public Enumeration getAttributeNames() {
+		return request.getAttributeNames();
+	}
+	//......	
+\end{lstlisting}
+对于servletProcessor2，改变部分：
+\begin{lstlisting}
+Servlet servlet = null;
+RequestFacade requestFacade = new RequestFacade(request);
+ResponseFacade responseFacade = new ResponseFacade(response);
+try {
+	servlet = (Servlet) myClass.newInstance();
+	servlet.service((ServletRequest) requestFacade, (ServletResponse) responseFacade);
+}
+catch (Exception e) {
+	System.out.println(e.toString());
+}
+\end{lstlisting}

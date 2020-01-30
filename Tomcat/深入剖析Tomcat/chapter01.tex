@@ -75,6 +75,177 @@ InetAddress.getByName("127.0.0.1")
 	\item Response
 \end{itemize}
 \subsection{HttpServer}
-
+\begin{lstlisting}
+public class HttpServer {
+	
+	/** WEB_ROOT is the directory where our HTML and other files reside.
+	*  For this package, WEB_ROOT is the "webroot" directory under the working
+	*  directory.
+	*  The working directory is the location in the file system
+	*  from where the java command was invoked.
+	*/
+	public static final String WEB_ROOT =
+	System.getProperty("user.dir") + File.separator  + "webroot";
+	
+	// shutdown command
+	private static final String SHUTDOWN_COMMAND = "/SHUTDOWN";
+	
+	// the shutdown command received
+	private boolean shutdown = false;
+	
+	public static void main(String[] args) {
+		HttpServer server = new HttpServer();
+		server.await();
+	}
+	
+	public void await() {
+		ServerSocket serverSocket = null;
+		int port = 8080;
+		try {
+			serverSocket =  new ServerSocket(port, 1, InetAddress.getByName("127.0.0.1"));
+		}
+		catch (IOException e) {
+			e.printStackTrace();
+			System.exit(1);
+		}
+		
+		// Loop waiting for a request
+		while (!shutdown) {
+			Socket socket = null;
+			InputStream input = null;
+			OutputStream output = null;
+			try {
+				socket = serverSocket.accept();
+				//收到请求获取java.io.*的实例
+				input = socket.getInputStream();
+				output = socket.getOutputStream();
+				
+				// create Request object and parse
+				Request request = new Request(input);
+				request.parse();
+				
+				// create Response object
+				Response response = new Response(output);
+				response.setRequest(request);
+				response.sendStaticResource();
+				
+				// Close the socket
+				socket.close();
+				
+				//check if the previous URI is a shutdown command
+				shutdown = request.getUri().equals(SHUTDOWN_COMMAND);
+			}
+			catch (Exception e) {
+				e.printStackTrace();
+				continue;
+			}
+		}
+	}
+}
+\end{lstlisting}
 \subsection{Request}
+Request表示一个HTTP请求，可以传递InputStream创建Request对象，并调用InputStream的read()获取原始数据。
+\begin{lstlisting}
+public class Request {
+	
+	private InputStream input;
+	private String uri;
+	
+	public Request(InputStream input) {
+		this.input = input;
+	}
+	//解析HTTP原始数据
+	public void parse() {
+		// Read a set of characters from the socket
+		StringBuffer request = new StringBuffer(2048);
+		int i;
+		byte[] buffer = new byte[2048];
+		try {
+			i = input.read(buffer);
+		}
+		catch (IOException e) {
+			e.printStackTrace();
+			i = -1;
+		}
+		for (int j=0; j<i; j++) {
+			request.append((char) buffer[j]);
+		}
+		System.out.print(request.toString());
+		uri = parseUri(request.toString());
+	}
+	//解析HTTP的URI，按照消息头截取URI
+	private String parseUri(String requestString) {
+		int index1, index2;
+		index1 = requestString.indexOf(' ');
+		if (index1 != -1) {
+			index2 = requestString.indexOf(' ', index1 + 1);
+			if (index2 > index1)
+			return requestString.substring(index1 + 1, index2);
+		}
+		return null;
+	}
+	
+	public String getUri() {
+		return uri;
+	}
+	
+}
+\end{lstlisting}
 \subsection{Response}
+\begin{lstlisting}
+/*
+HTTP Response = Status-Line
+*(( general-header | response-header | entity-header ) CRLF)
+CRLF
+[ message-body ]
+Status-Line = HTTP-Version SP Status-Code SP Reason-Phrase CRLF
+*/
+
+public class Response {
+	
+	private static final int BUFFER_SIZE = 1024;
+	Request request;
+	OutputStream output;
+	
+	public Response(OutputStream output) {
+		this.output = output;
+	}
+	
+	public void setRequest(Request request) {
+		this.request = request;
+	}
+	//将静态资源作为原始数据发送
+	public void sendStaticResource() throws IOException {
+		byte[] bytes = new byte[BUFFER_SIZE];
+		FileInputStream fis = null;
+		try {
+			File file = new File(HttpServer.WEB_ROOT, request.getUri());
+			if (file.exists()) {
+				fis = new FileInputStream(file);
+				int ch = fis.read(bytes, 0, BUFFER_SIZE);
+				while (ch!=-1) {
+					output.write(bytes, 0, ch);
+					ch = fis.read(bytes, 0, BUFFER_SIZE);
+				}
+			}
+			else {
+				// file not found
+				String errorMessage = "HTTP/1.1 404 File Not Found\r\n" +
+				"Content-Type: text/html\r\n" +
+				"Content-Length: 23\r\n" +
+				"\r\n" +
+				"<h1>File Not Found</h1>";
+				output.write(errorMessage.getBytes());
+			}
+		}
+		catch (Exception e) {
+			// thrown if cannot instantiate a File object
+			System.out.println(e.toString() );
+		}
+		finally {
+			if (fis!=null)
+			fis.close();
+		}
+	}
+}
+\end{lstlisting}

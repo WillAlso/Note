@@ -1,0 +1,211 @@
+\chapter{虚拟存储概念}
+\section{虚拟存储的需求背景}
+\begin{enumerate}
+	\item 增长迅速的存储需求：程序规模的增长速度远远大于存储器容量的增长
+\end{enumerate}
+存储层次结构
+\begin{itemize}
+	\item 理想中的存储器
+	\subitem 容量更大、速度更快、价格更便宜的非易失性存储器
+	\item 实际中的存储器：使用存储结构解决
+\end{itemize}
+\subsection{操作系统的存储抽象}
+操作系统对存储的抽象：地址空间
+\subsection{虚拟存储需求}
+\begin{itemize}
+	\item 计算机系统时常出现内存空间不够用
+	\begin{enumerate}
+		\item 覆盖overlay
+		\subitem 应用程序\textbf{手动}把需要的指令和数据保存在内存中
+		\item 交换swapping
+		\subitem 操作系统\textbf{自动}把暂时不能执行的程序保存到外存中
+		\item 虚拟存储
+		\subitem 在有限容量的内存中，以页为单位\textbf{自动装入更多更大}的程序
+	\end{enumerate}
+\end{itemize}
+
+\section{覆盖和交换}
+\subsection{覆盖技术}
+目标：在较小的可用内存中运行较大的程序
+\par 方法：依据程序逻辑结构，将程序划分为若干\textbf{功能相对独立}的模块，将不会同时执行的模块\textbf{共享同一块内存区域}
+\begin{itemize}
+	\item 必要部分（常用功能）的代码和数据常驻内存
+	\item 可选部分（不常用部分）放在其他程序模块中，只在需要用到时装入内存
+	\item 不存在调用关系的模块可相互覆盖，共用同一块内存区域
+\end{itemize}
+覆盖技术的不足：
+\begin{enumerate}
+	\item 增加编程困难
+	\begin{itemize}
+		\item 需要程序员划分功能模块，并确定模块间的覆盖关系
+		\item 增加了编程的复杂度
+	\end{itemize}
+	\item 增加执行时间
+	\begin{itemize}
+		\item 从外存装入覆盖模块
+		\item 时间换空间
+	\end{itemize}
+\end{enumerate}
+\subsection{交换技术}
+目标：增加正在运行或需要运行的程序的内存。
+\par 实现方法：
+\begin{itemize}
+	\item 可将暂时不能运行的程序放到外存
+	\item 换入换出的基本单位
+	\subitem 整个进程的地址空间
+	\item 换出(swap out)
+	\subitem 把一个进程的整个地址空间保存到外存
+	\item 换入(swap in)
+	\subitem 将外存中某进程的地址空间读入到内存
+\end{itemize}
+交换技术面临的问题
+\begin{itemize}
+	\item 交换时机：何时需要发生交换？
+	\subitem 只当内存空间不够时或有不够的可能时换出
+	\item 交换区大小
+	\subitem 存放所有用户进程的所有内存映像的拷贝
+	\item 程序换入时的重定位：换出后再换入时要放回原处吗？
+	\subitem 采用动态地址映射的方法
+\end{itemize}
+\subsection{覆盖和交换的比较}
+\begin{enumerate}
+	\item 覆盖
+	\begin{itemize}
+		\item 只能在没有调用关系的模块间
+		\item 程序员须给出模块间的逻辑覆盖结构
+		\item 发生在运行程序的内部模块间
+	\end{itemize}
+	\item 交换
+	\begin{itemize}
+		\item 以进程为单位
+		\item 不需要模块间的逻辑覆盖结构
+		\item 发生在内存进程间
+	\end{itemize}
+\end{enumerate}
+
+\section{局部性原理}
+虚拟存储技术的目标
+\begin{enumerate}
+	\item 只把部分程序放到内存中，从而运行比物理内存大的程序。
+	\subitem 由操作系统自动完成，无需程序员的干涉；
+	\item 实现进程在内存与外存之间的交换，从而获得更多的空闲内存空间
+	\subitem 在内存与外存之间只交换进程的部分内容
+\end{enumerate}
+\subsection{局部性原理(principle of locality)}
+局部性原理：程序在执行过程中的一个较短时期，所执行的指令地址和指令的操作数地址，分别局限于一定区域。
+\begin{enumerate}
+	\item 时间局部性
+	\subitem 一条指令的一次执行和下次执行，一个数据的一次访问和下次访问
+	都集中在一个较短的时期内
+	\item 空间局部性
+	\subitem 当前指令和邻近的几条指令，当前访问的数据和邻近的几个数据都
+	集中在一个较小的区域内
+	\item 分支局部性
+	\subitem 一条跳转指令的两次执行，很可能跳到相同的内存位置
+	\item 局部性原理的意义
+	\subitem 从理论上来说，虚拟存储技术是能够实现的，而且可取得满意的结果
+\end{enumerate}
+程序编写：二维数组的遍历顺序。
+
+\section{虚拟存储概念}
+虚拟存储思路：
+\begin{itemize}
+	\item 将不常用的部分内存块暂存到外存中
+\end{itemize}
+虚拟存储原理：
+\begin{enumerate}
+	\item 装载程序时
+	\subitem 只将当前指令执行需要的部分页面或段装入内存
+	\item 指令执行中需要的指令或数据不在内存（称为缺页或缺段）时
+	\subitem 处理器通知操作系统将相应的页面或段调入内存
+	\item 操作系统将内存中暂时不用的页面或段保存到外存中
+\end{enumerate}
+实现方式
+\begin{itemize}
+	\item 虚拟页式存储
+	\item 虚拟段式存储
+\end{itemize}
+虚拟存储的基本特征：
+\begin{enumerate}
+	\item 不连续性
+	\subitem 物理内存分配非连续
+	\subitem 虚拟地址空间使用非连续
+	\item 大用户空间
+	\subitem 提供给用户的虚拟内存可大于实际的物理内存
+	\item 部分交换
+	\subitem 虚拟存储只对部分虚拟地址空间进行调入和调出
+\end{enumerate}
+\subsection{虚拟存储的支持技术}
+\begin{enumerate}
+	\item 硬件
+	\subitem 页式或短时存储中的地址转换机制
+	\item 操作系统
+	\subitem 管理内存和外存间页面或段的换入和换出
+\end{enumerate}
+
+\section{虚拟页式存储}
+\subsection{虚拟页式存储管理}
+\begin{itemize}
+	\item 在页式存储管理的基础上，增加请求调页和页面置换
+	\item 思路
+	\begin{enumerate}
+		\item 当用户程序要装载到内存运行时，只装入部分页面，就启动
+		程序执行
+		\item 进程在运行中发现有需要的代码或数据不在内存时，则向系统发出缺页异常请求
+		\item 操作系统在处理缺页异常时，将外存中相应的页面调入内存，使得进程能继续运行
+	\end{enumerate}
+\end{itemize}
+虚拟页式存储在页表中加一个无效项，当查询无效时，交给操作系统处理，然后由
+操作系统进行查找缺页。
+\subsection{虚拟页式存储中的页表项结构}
+页表结构：\\
+逻辑页号+访问位+修改位+保护位+驻留位+物理页帧号
+\begin{enumerate}
+	\item 驻留位：表示该页是否在内存
+	\subitem 1表示该页位于内存中，该页表项是有效的，可以使用
+	\subitem 0表示该页当前在外存中，访问该页表项将导致缺页异常
+	\item 修改位：表示在内存中的该页是否被修改
+	\subitem 回收该物理页面时，据此判断是否要把它的内容写回外存
+	\item 访问位：表示该页面是否被访问过（读或写）
+	\subitem 用于页面置换算法
+	\item 保护位：表示该页的允许访问方式
+	\subitem 只读、可读写、可执行
+\end{enumerate}
+
+\section{缺页异常}
+\subsection{缺页异常的处理流程}
+\begin{enumerate}[A]
+	\item load M，查找页表
+	\item 页表驻留位为0，缺页异常
+	\item 操作系统缺页异常服务处理例程查找在外存中的页面
+	\item 查找到后，页面换入
+	\item 页表项修改
+	\item 重新执行导致异常的指令
+\end{enumerate}
+A.在内存中有空闲物理页，分配一物理页帧，转至E步\\
+B.依据页面置换算法选择将被替换的物理页帧f，对应逻辑页q\\
+C.如果q被修改过，则把它写回外存\\
+D.修改q的页表项中驻留位置为0\\
+E.将需要访问的页p装入到物理页面f\\
+F.修改p的页表项驻留位为1，物理页帧号为f。\\
+G.重新执行产生缺页的指令。
+\subsection{虚拟页式存储中的外存管理}
+在何处保存未被映射的页？
+\begin{itemize}
+	\item 应能方便地找到在外存中的页面内容
+	\item 交换空间（磁盘或者文件）
+	\subitem 采用特殊格式存储未被映射的页面
+\end{itemize}
+虚拟页式存储的外存选择
+\begin{itemize}
+	\item 代码段：可执行二进制文件（不放交换空间）
+	\item 动态加载的共享库程序段：动态调用的库文件（不放交换空间）
+	\item 其他段：交换空间
+\end{itemize}
+\subsection{虚拟页式存储管理的性能}
+\begin{enumerate}
+	\item 有效存储访问时间(effective memory access time EAT)
+	\\ $EAT=\text{访存时间}\times(1-p)+\text{缺页异常处理时间}\times \text{缺页率}p$
+\end{enumerate}
+例子：访存时间10ns，磁盘访问时间5ms，缺页率p，页修改率q
+\par $EAT=10\times(1-p)+5,000,000\times p\times (1+q)$

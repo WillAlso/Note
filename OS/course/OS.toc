@@ -1,0 +1,148 @@
+\contentsline {chapter}{\numberline {第一章\hspace {.3em}}操作系统概述}{9}{chapter.1}%
+\contentsline {section}{\numberline {1.1}什么是操作系统}{9}{section.1.1}%
+\contentsline {subsection}{\numberline {1.1.1}操作系统的定义}{9}{subsection.1.1.1}%
+\contentsline {subsection}{\numberline {1.1.2}操作系统软件的组成}{9}{subsection.1.1.2}%
+\contentsline {subsection}{\numberline {1.1.3}操作系统内核特征}{10}{subsection.1.1.3}%
+\contentsline {section}{\numberline {1.2}为什么学习操作系统}{10}{section.1.2}%
+\contentsline {section}{\numberline {1.3}操作系统实例}{10}{section.1.3}%
+\contentsline {section}{\numberline {1.4}操作系统的演变}{10}{section.1.4}%
+\contentsline {subsection}{\numberline {1.4.1}单用户系统(45-55)}{11}{subsection.1.4.1}%
+\contentsline {subsection}{\numberline {1.4.2}批处理系统(55-65)}{11}{subsection.1.4.2}%
+\contentsline {subsection}{\numberline {1.4.3}多道程序(65-80)}{11}{subsection.1.4.3}%
+\contentsline {subsection}{\numberline {1.4.4}分时系统(70-)}{11}{subsection.1.4.4}%
+\contentsline {subsection}{\numberline {1.4.5}个人计算机}{11}{subsection.1.4.5}%
+\contentsline {subsection}{\numberline {1.4.6}分布式计算}{12}{subsection.1.4.6}%
+\contentsline {section}{\numberline {1.5}操作系统的结构}{12}{section.1.5}%
+\contentsline {subsection}{\numberline {1.5.1}简单结构}{12}{subsection.1.5.1}%
+\contentsline {subsection}{\numberline {1.5.2}分层结构}{12}{subsection.1.5.2}%
+\contentsline {subsection}{\numberline {1.5.3}微内核}{13}{subsection.1.5.3}%
+\contentsline {subsection}{\numberline {1.5.4}外核结构}{13}{subsection.1.5.4}%
+\contentsline {subsection}{\numberline {1.5.5}VMM虚拟机管理器}{13}{subsection.1.5.5}%
+\contentsline {section}{\numberline {1.6}问题}{13}{section.1.6}%
+\contentsline {chapter}{\numberline {第二章\hspace {.3em}}启动、中断、异常和系统调用}{19}{chapter.2}%
+\contentsline {section}{\numberline {2.1}BIOS}{19}{section.2.1}%
+\contentsline {subsection}{\numberline {2.1.1}BIOS系统调用}{19}{subsection.2.1.1}%
+\contentsline {section}{\numberline {2.2}系统启动流程}{20}{section.2.2}%
+\contentsline {subsection}{\numberline {2.2.1}CPU初始化}{20}{subsection.2.2.1}%
+\contentsline {subsection}{\numberline {2.2.2}主引导记录MBR格式}{21}{subsection.2.2.2}%
+\contentsline {subsection}{\numberline {2.2.3}分区引导扇区格式}{21}{subsection.2.2.3}%
+\contentsline {subsection}{\numberline {2.2.4}加载程序bootloader}{21}{subsection.2.2.4}%
+\contentsline {subsection}{\numberline {2.2.5}系统启动规范}{21}{subsection.2.2.5}%
+\contentsline {section}{\numberline {2.3}中断、异常和系统调用比较}{22}{section.2.3}%
+\contentsline {subsection}{\numberline {2.3.1}背景}{22}{subsection.2.3.1}%
+\contentsline {subsection}{\numberline {2.3.2}中断、异常和系统调用比较}{22}{subsection.2.3.2}%
+\contentsline {subsection}{\numberline {2.3.3}中断处理机制}{23}{subsection.2.3.3}%
+\contentsline {subsection}{\numberline {2.3.4}中断嵌套}{23}{subsection.2.3.4}%
+\contentsline {subsection}{\numberline {2.3.5}问题}{23}{subsection.2.3.5}%
+\contentsline {section}{\numberline {2.4}系统调用}{27}{section.2.4}%
+\contentsline {subsection}{\numberline {2.4.1}系统调用}{27}{subsection.2.4.1}%
+\contentsline {subsection}{\numberline {2.4.2}系统调用的实现}{27}{subsection.2.4.2}%
+\contentsline {subsection}{\numberline {2.4.3}系统调用和函数调用的不同处}{28}{subsection.2.4.3}%
+\contentsline {subsection}{\numberline {2.4.4}中断、异常和系统调用的开销}{28}{subsection.2.4.4}%
+\contentsline {subsection}{\numberline {2.4.5}问题}{28}{subsection.2.4.5}%
+\contentsline {section}{\numberline {2.5}系统调用示例}{30}{section.2.5}%
+\contentsline {subsection}{\numberline {2.5.1}例子-文件复制}{30}{subsection.2.5.1}%
+\contentsline {subsection}{\numberline {2.5.2}系统调用read的实现}{31}{subsection.2.5.2}%
+\contentsline {chapter}{\numberline {第三章\hspace {.3em}}物理内存管理：连续内存分配}{33}{chapter.3}%
+\contentsline {section}{\numberline {3.1}计算机体系结构和内存层次}{33}{section.3.1}%
+\contentsline {section}{\numberline {3.2}地址空间和地址生成}{34}{section.3.2}%
+\contentsline {subsection}{\numberline {3.2.1}地址空间的定义}{34}{subsection.3.2.1}%
+\contentsline {subsection}{\numberline {3.2.2}逻辑地址的生成}{34}{subsection.3.2.2}%
+\contentsline {subsection}{\numberline {3.2.3}地址生成时机和限制}{34}{subsection.3.2.3}%
+\contentsline {subsection}{\numberline {3.2.4}地址生成过程}{34}{subsection.3.2.4}%
+\contentsline {subsection}{\numberline {3.2.5}地址检查}{35}{subsection.3.2.5}%
+\contentsline {section}{\numberline {3.3}连续内存分配}{35}{section.3.3}%
+\contentsline {subsection}{\numberline {3.3.1}连续内存分配和内存碎片}{35}{subsection.3.3.1}%
+\contentsline {subsection}{\numberline {3.3.2}连续内存分配：动态分区分配}{35}{subsection.3.3.2}%
+\contentsline {subsection}{\numberline {3.3.3}最先匹配(First Fit Allocation)策略}{36}{subsection.3.3.3}%
+\contentsline {subsection}{\numberline {3.3.4}最佳匹配(Best Fit Allocation)策略}{36}{subsection.3.3.4}%
+\contentsline {subsection}{\numberline {3.3.5}最差匹配(Worst Fit Allocation)策略}{37}{subsection.3.3.5}%
+\contentsline {section}{\numberline {3.4}碎片整理}{37}{section.3.4}%
+\contentsline {subsection}{\numberline {3.4.1}碎片整理：紧凑(compaction)}{37}{subsection.3.4.1}%
+\contentsline {subsection}{\numberline {3.4.2}碎片整理：分区对换(Swapping in/out)}{38}{subsection.3.4.2}%
+\contentsline {section}{\numberline {3.5}伙伴系统}{38}{section.3.5}%
+\contentsline {subsection}{\numberline {3.5.1}伙伴系统(Buddy System)}{38}{subsection.3.5.1}%
+\contentsline {subsection}{\numberline {3.5.2}伙伴系统的实现}{38}{subsection.3.5.2}%
+\contentsline {subsubsection}{数据结构}{38}{subsubsection*.2}%
+\contentsline {subsubsection}{分配过程}{38}{subsubsection*.3}%
+\contentsline {subsubsection}{释放过程}{38}{subsubsection*.4}%
+\contentsline {subsection}{\numberline {3.5.3}ucore中的物理内存管理}{39}{subsection.3.5.3}%
+\contentsline {section}{\numberline {3.6}问题}{39}{section.3.6}%
+\contentsline {chapter}{\numberline {第四章\hspace {.3em}}物理内存管理：非连续内存分配}{41}{chapter.4}%
+\contentsline {section}{\numberline {4.1}非连续内存分配的需求背景}{41}{section.4.1}%
+\contentsline {subsection}{\numberline {4.1.1}非连续分配的设计目标}{41}{subsection.4.1.1}%
+\contentsline {section}{\numberline {4.2}段式存储管理}{42}{section.4.2}%
+\contentsline {subsection}{\numberline {4.2.1}段地址空间}{42}{subsection.4.2.1}%
+\contentsline {subsection}{\numberline {4.2.2}段访问机制}{42}{subsection.4.2.2}%
+\contentsline {section}{\numberline {4.3}页式存储管理}{43}{section.4.3}%
+\contentsline {subsection}{\numberline {4.3.1}页式存储管理的概念}{43}{subsection.4.3.1}%
+\contentsline {subsection}{\numberline {4.3.2}帧(Frame)}{43}{subsection.4.3.2}%
+\contentsline {subsection}{\numberline {4.3.3}页(Page)}{44}{subsection.4.3.3}%
+\contentsline {subsection}{\numberline {4.3.4}页式存储的地址映射——页表}{44}{subsection.4.3.4}%
+\contentsline {section}{\numberline {4.4}页表概述}{44}{section.4.4}%
+\contentsline {subsection}{\numberline {4.4.1}页表结构}{44}{subsection.4.4.1}%
+\contentsline {subsection}{\numberline {4.4.2}页式存储管理机制的性能问题}{45}{subsection.4.4.2}%
+\contentsline {section}{\numberline {4.5}快表和多级页表}{45}{section.4.5}%
+\contentsline {subsection}{\numberline {4.5.1}快表Translation Look-aside Buffer,TLB}{45}{subsection.4.5.1}%
+\contentsline {subsection}{\numberline {4.5.2}多级页表}{46}{subsection.4.5.2}%
+\contentsline {section}{\numberline {4.6}反置页表}{46}{section.4.6}%
+\contentsline {subsection}{\numberline {4.6.1}大地址空间问题}{46}{subsection.4.6.1}%
+\contentsline {subsection}{\numberline {4.6.2}页寄存器Page Registers}{46}{subsection.4.6.2}%
+\contentsline {subsection}{\numberline {4.6.3}页寄存器的地址转换}{47}{subsection.4.6.3}%
+\contentsline {subsection}{\numberline {4.6.4}反置页表}{47}{subsection.4.6.4}%
+\contentsline {subsection}{\numberline {4.6.5}反置页表的Hash冲突}{48}{subsection.4.6.5}%
+\contentsline {section}{\numberline {4.7}段页式存储管理}{48}{section.4.7}%
+\contentsline {subsection}{\numberline {4.7.1}段页式存储管理的需求}{48}{subsection.4.7.1}%
+\contentsline {subsection}{\numberline {4.7.2}段页式存储管理实现}{48}{subsection.4.7.2}%
+\contentsline {section}{\numberline {4.8}问题}{48}{section.4.8}%
+\contentsline {chapter}{\numberline {第五章\hspace {.3em}}虚拟存储概念}{51}{chapter.5}%
+\contentsline {section}{\numberline {5.1}虚拟存储的需求背景}{51}{section.5.1}%
+\contentsline {subsection}{\numberline {5.1.1}操作系统的存储抽象}{51}{subsection.5.1.1}%
+\contentsline {subsection}{\numberline {5.1.2}虚拟存储需求}{51}{subsection.5.1.2}%
+\contentsline {section}{\numberline {5.2}覆盖和交换}{51}{section.5.2}%
+\contentsline {subsection}{\numberline {5.2.1}覆盖技术}{51}{subsection.5.2.1}%
+\contentsline {subsection}{\numberline {5.2.2}交换技术}{52}{subsection.5.2.2}%
+\contentsline {subsection}{\numberline {5.2.3}覆盖和交换的比较}{53}{subsection.5.2.3}%
+\contentsline {section}{\numberline {5.3}局部性原理}{53}{section.5.3}%
+\contentsline {subsection}{\numberline {5.3.1}局部性原理(principle of locality)}{53}{subsection.5.3.1}%
+\contentsline {section}{\numberline {5.4}虚拟存储概念}{54}{section.5.4}%
+\contentsline {subsection}{\numberline {5.4.1}虚拟存储的支持技术}{55}{subsection.5.4.1}%
+\contentsline {section}{\numberline {5.5}虚拟页式存储}{55}{section.5.5}%
+\contentsline {subsection}{\numberline {5.5.1}虚拟页式存储管理}{55}{subsection.5.5.1}%
+\contentsline {subsection}{\numberline {5.5.2}虚拟页式存储中的页表项结构}{55}{subsection.5.5.2}%
+\contentsline {section}{\numberline {5.6}缺页异常}{56}{section.5.6}%
+\contentsline {subsection}{\numberline {5.6.1}缺页异常的处理流程}{56}{subsection.5.6.1}%
+\contentsline {subsection}{\numberline {5.6.2}虚拟页式存储中的外存管理}{56}{subsection.5.6.2}%
+\contentsline {subsection}{\numberline {5.6.3}虚拟页式存储管理的性能}{57}{subsection.5.6.3}%
+\contentsline {chapter}{\numberline {第六章\hspace {.3em}}页面置换算法}{59}{chapter.6}%
+\contentsline {section}{\numberline {6.1}页面置换算法的概念}{59}{section.6.1}%
+\contentsline {subsection}{\numberline {6.1.1}置换算法的功能和目标}{59}{subsection.6.1.1}%
+\contentsline {subsection}{\numberline {6.1.2}置换算法的评价方法}{59}{subsection.6.1.2}%
+\contentsline {subsection}{\numberline {6.1.3}页面置换算法分类}{60}{subsection.6.1.3}%
+\contentsline {section}{\numberline {6.2}最优算法、先进先出算法和最近最久未使用算法}{60}{section.6.2}%
+\contentsline {subsection}{\numberline {6.2.1}最优页面置换算法(OPT,optimal)}{60}{subsection.6.2.1}%
+\contentsline {subsection}{\numberline {6.2.2}先进先出算法(First-In First-Out,FIFO)}{61}{subsection.6.2.2}%
+\contentsline {subsection}{\numberline {6.2.3}最近最久未使用算法(Least Recently Used,LRU)}{61}{subsection.6.2.3}%
+\contentsline {subsection}{\numberline {6.2.4}LRU算法的可能实现方法}{61}{subsection.6.2.4}%
+\contentsline {subsection}{\numberline {6.2.5}问题}{62}{subsection.6.2.5}%
+\contentsline {section}{\numberline {6.3}时钟置换算法和最不常用算法}{62}{section.6.3}%
+\contentsline {subsection}{\numberline {6.3.1}时钟置换算法(Clock)}{62}{subsection.6.3.1}%
+\contentsline {subsection}{\numberline {6.3.2}改进的Clock算法}{63}{subsection.6.3.2}%
+\contentsline {subsection}{\numberline {6.3.3}最不常用算法(Least Frequently Used,LFU)}{64}{subsection.6.3.3}%
+\contentsline {subsection}{\numberline {6.3.4}问题}{64}{subsection.6.3.4}%
+\contentsline {section}{\numberline {6.4}BELADY现象和局部置换算法比较}{65}{section.6.4}%
+\contentsline {subsection}{\numberline {6.4.1}Belady现象}{65}{subsection.6.4.1}%
+\contentsline {subsection}{\numberline {6.4.2}LRU、FIFO和Clock的比较}{65}{subsection.6.4.2}%
+\contentsline {subsection}{\numberline {6.4.3}问题}{66}{subsection.6.4.3}%
+\contentsline {section}{\numberline {6.5}工作集置换算法}{66}{section.6.5}%
+\contentsline {subsection}{\numberline {6.5.1}全局置换算法}{66}{subsection.6.5.1}%
+\contentsline {subsection}{\numberline {6.5.2}工作集}{67}{subsection.6.5.2}%
+\contentsline {subsection}{\numberline {6.5.3}常驻集}{67}{subsection.6.5.3}%
+\contentsline {subsection}{\numberline {6.5.4}工作集置换算法}{67}{subsection.6.5.4}%
+\contentsline {section}{\numberline {6.6}缺页率置换算法}{68}{section.6.6}%
+\contentsline {subsection}{\numberline {6.6.1}缺页率(page fault rate)}{68}{subsection.6.6.1}%
+\contentsline {subsection}{\numberline {6.6.2}缺页率置换算法(PFF,Page-Fault-Frequency)}{68}{subsection.6.6.2}%
+\contentsline {subsection}{\numberline {6.6.3}问题}{69}{subsection.6.6.3}%
+\contentsline {section}{\numberline {6.7}抖动和负载控制}{69}{section.6.7}%
+\contentsline {subsection}{\numberline {6.7.1}抖动问题thrashing}{69}{subsection.6.7.1}%
+\contentsline {subsection}{\numberline {6.7.2}负载控制}{69}{subsection.6.7.2}%

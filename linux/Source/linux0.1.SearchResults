@@ -1,0 +1,3 @@
+---- tell_father Matches (2 in 1 files) ----
+Exit.c (e:\note\linux\data\linux-0.11\kernel):static void tell_father(int pid)
+Exit.c (e:\note\linux\data\linux-0.11\kernel):	tell_father(current->father);

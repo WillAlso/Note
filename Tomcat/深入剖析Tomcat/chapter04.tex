@@ -1,0 +1,433 @@
+\chapter{Tomcat的默认连接器}
+Tomcat的连接器有默认连接器，还有Coyote、mod\_jk和mod\_webapp等，
+并必须满足下面要求：
+\begin{itemize}
+	\item 实现org.apache.catalina.Connector接口；
+	\item 负责创建实现了org.apache.catalina.Request接口的request对象；
+	\item 负责创建实现了org.apache.catalina.Response接口的response对象。
+\end{itemize}
+\par 默认连接器原理：它会等待引入的HTTP请求，创建request对象和response对象，然后调用org.apache.catalina.Container接口的invoke()方法，将request对象和response对象传给servlet容器。
+\par 相对之前的连接器，使用优化方法：使用一个对象池避免了频繁的创建对象带来的性能损耗，其次，使用字符数组代替字符串。
+\par Tomcat的默认连接器支持HTTP1.1以及以前版本。
+\section{HTTP1.1的新特性}
+\subsection{持久连接}
+HTTP1.1之前，无论浏览器何时连接服务器，当服务器处理请求后，就会断开与浏览器的连接，但是页面的引用资源就需要另开新连接获取，因此处理过程很慢。
+\par 使用持久连接，下载页面后，服务器不会关闭连接，等待客户端请求引用资源，HTTP 1.1默认使用持久连接，可以显式使用：
+\par connection: keep-alive
+\subsection{块编码}
+建立持久连接后，服务器可以从多个资源发送字节流，客户端也可以使用该连接
+发送多个请求，因此，发送方必须在每个请求或响应加上“content-length”头信息，这样接收方才能解释接受到的字节信息，但发送方有时不知道发送多少个字节，servlet容器可以在接受一部分信息就能响应消息，因此可以使得接收方不知道发送内容长度也可以解析内容。
+\par 在HTTP 1.0中，服务器可以不写“content-length”头信息，尽管往连接中写响应信息即可，发送完信息后，直接关闭连接，而客户端会一直读取内容，直到读方法返回-1。
+\par HTTP 1.1使用“transfer-encoding”的特殊请求头指明字节流将会分块发送。对每个块，块的长度（16进制）会有一个回车，然后是回车/换行符（CR/LF），然后是具体的数据，一个事务以一个长度为0的块标记，表示事务完成。
+\subsection{状态码100的使用}
+使用HTTP 1.1的客户端可以向服务器发送请求体之前发送如下请求头，并等待服务器的确认：
+Except: 100-continue
+\par 当客户端发送一个较长请求体之前，不确定服务端是否会接受，就可能使用上述头信息，服务器发送下面表明接收：
+HTTP/1.1 100 Continue。
+\par 注：返回内容后面要加上CRLF字符，然后服务器继续读取输入流信息。
+
+\section{Connector接口}
+Tomcat连接器需要实现org.apache.catalina.Connector接口，并实现
+getContainer()、setContainer()、createRequest()和createResponse()方法。
+\par setContainer()将连接器与某个servlet容器相关联；getContainer()返回当前连接器的servlet容器；createRequest()为引入的HTTP请求创建request对象；createResponse()创建一个response对象。
+\section{HttpConnector类}
+\subsection{创建服务器套接字}
+HttpConnector类的initialize()方法会调用私有办法open()，后者返回一个
+ServerSocket实例，赋值给成员变量serverSocket，但没有使用它的构造函数，
+而是使用工厂ServerSocketFactory获取实例。
+\subsection{维护HttpProcessor实例}
+Tomcat的默认连接器中，HttpConnector实例有一个HttpProcessor对象池，
+每个HttpProcessor实例都运行在自己的线程中，以应对对个HTTP请求。
+\par HTTPProcessor对象池：
+\begin{lstlisting}
+private Stack processors = new Stack();
+protected int minProcessors = 5;
+private int maxProcessors = 20;
+\end{lstlisting}
+\par 创建的HttpProcessor实例数目由minProcessors和maxProcessors决定，默认min=5，max=20。
+初始时，会创建min个实例等待，当请求数目超过时，会创建更多的HttpProcessor实例，直到max，如果还不够，则忽略请求。
+\par 如果希望HttpConnector能够持续创建HttpProcessor实例，可以将max设置为负数，且curProcessor保存了当前HttpProcessor实例的数目。
+\par HttpConnector的start()创建初始数量HttpProcessor实例：
+\begin{lstlisting}
+// Create the specified minimum number of processors
+while (curProcessors < minProcessors) {
+	if ((maxProcessors > 0) && (curProcessors >= maxProcessors))
+		break;
+	HttpProcessor processor = newProcessor();
+	recycle(processor);
+}
+\end{lstlisting}
+\par HttpProcessor负责解析HTTP的请求行和请求头，它的构造函数会调用HttpConnector的createRequest和createResponse方法。
+\subsection{提供HTTP请求服务}
+对于每个引入的HTTP请求，通过调用私有方法createProcessor()获得一个HttpProcessor对象，可以从对象池中获取，如果对象池中有可用，则直接返回，否则判断min和max大小进行进一步生成。
+\begin{lstlisting}
+if (processor == null) {
+	try {
+		log(sm.getString("httpConnector.noProcessor"));
+		socket.close();
+	} catch (IOException e) {
+		;
+	}
+	continue;
+}
+processor.assign(socket);
+\end{lstlisting}
+如果为空，说明连接已达上限，直接关闭socket，否则设置processor的socket。
+\section{HttpProcessor类}
+HttpProcessor的process()负责解析HTTP请求。
+\par 之前的HttpConnector只能等待HttpProcessor处理完毕后才能处理下一个
+请求（同步），因此，在默认连接器中，HttpProcessor实现了java.lang.Runnable接口，可以在自己的“处理器线程”处理请求，而不阻塞HttpConnector线程。
+\par run()方法中while执行到await()方法时阻塞，await()会阻塞处理器，
+直到它从HttpConnector中获取到了新的Socket对象，在调用assign之前一直阻塞，但assign并不是与await在同一个线程中。
+\begin{lstlisting}
+synchronized void assign(Socket socket) {
+	
+	// Wait for the Processor to get the previous Socket
+	while (available) {
+		try {
+			wait();
+		} catch (InterruptedException e) {
+		}
+	}
+	
+	// Store the newly available Socket and notify our thread
+	this.socket = socket;
+	available = true;
+	notifyAll();
+	
+	if ((debug >= 1) && (socket != null))
+	log(" An incoming request is being assigned");
+	
+}
+private synchronized Socket await() {
+	
+	// Wait for the Connector to provide a new Socket
+	while (!available) {
+		try {
+			wait();
+		} catch (InterruptedException e) {
+		}
+	}
+	
+	// Notify the Connector that we have received this Socket
+	Socket socket = this.socket;
+	available = false;
+	notifyAll();
+	
+	if ((debug >= 1) && (socket != null))
+	log("  The incoming request has been awaited");
+	
+	return (socket);
+	
+}
+\end{lstlisting}
+处理器线程刚启动，available变为false，会等待其他线程调用notify()或notifyAll()方法，直到连接器线程调用了实例HttpProcessor的notifyAll()方法。
+\par 当新的Socket对象通过assign()传入时，连接器线程会调用HttpProcessor实例的assign()方法，由于变量available的值为false，因此会调出while，传入的Socket会赋值给HttpProcessor的socket变量。
+\par 然后连接器线程会将available设置为true，并调用notifyAll()，唤醒处理器线程，这样处理器线程会跳出while循环，将成员变量赋值给一个局部变量，然后调用notifyAll()，将局部变量返回，由其他程序继续处理。
+\par 注：
+\par 为什么await()方法使用局部变量socket，而不直接返回？因为使用局部变量可以在当前Socket对象处理完之前，继续接收下一个Socket对象。
+\par 为什么await()需要调用notifyAll()方法？是为了防止出现另一个Socket对象已经到达，而此时变量available还是true。在这种情况下，“连接器线程”会在assign()方法内的循环中阻塞，直到“处理器线程”调用notifyAll()方法。
+\section{Request对象}
+RequestBase类直接实现了org.apache.catalina.Request，而RequestBase类是HttpRequest类的父类，最终实现类是HttpRequestImpl类，而HttpRequestImpl类继承自HttpRequest类。
+\section{Response对象}
+里面的继承关系和Request类似。
+\section{处理请求}
+当Socket对象被赋值给HttpProcessor后，HttpProcessor的run()会调用process()方法，process()方法会执行3个操作：解析连接、解析请求、解析请求头。
+\par process()使用ok表示处理过程是否有错误发生，finishResponse表示是否调用Response接口的finishResponse()方法，keepAlive是否为持久连接，stopped表示是否被连接器终止，http11表示是否支持HTTP1.1客户端。
+\par 在process()中，先执行request和response的初始化操作，然后调用
+parseConnection()、parseRequest()和parseHeader()方法解析HTTP请求，
+parseConnection()获取请求使用的协议，并根据协议版本设置是否持久连接，
+如果在http请求头中发现“Except: 100-continue”，则parseHeader()将sendAck设置为true。
+\par 若请求协议HTTP 1.1，而且客户端发出了“Except: 100-continue”，会对调用
+ackRequest()请求该方法进行响应，另外还会检查是否允许分块。
+\begin{lstlisting}
+//响应信息
+HTTP/1.1 100 Continue
+\end{lstlisting}
+\par 完成解析后，process()将request和response对象作为参数传入servlet容器的invoke()方法。
+\begin{lstlisting}
+try {
+	((HttpServletResponse) response).setHeader
+	("Date", FastHttpDateFormat.getCurrentDate());
+	if (ok) {
+		connector.getContainer().invoke(request, response);
+	}
+}
+\end{lstlisting}
+\par 然后，如果finishResponse为true，则调用response对象的finishResponse()方法和request对象的finishRequest()方法，将结果发送至客户端。
+最后，检查response的头信息“Connection”是否在servlet中设置为close或者协议为1.0，如果任一种为真，则将keepAlive设置为false，最后对对象request和response进行回收。
+\par keepAlive为true，或前面解析没有错误，或HttpProcessor没有被终止，
+则while将继续运行，否则调用shutdownInput()，并关闭套接字。
+\subsection{解析连接}
+parseConnection()会从套接字中获取Internet地址，将其赋值给HttpRequestImpl对象，并且会检查是否使用了代理，将Socket对象赋值给request对象。
+\begin{lstlisting}
+private void parseConnection(Socket socket)
+throws IOException, ServletException {
+	if (debug >= 2)
+	log("  parseConnection: address=" + socket.getInetAddress() +
+	", port=" + connector.getPort());
+	((HttpRequestImpl) request).setInet(socket.getInetAddress());
+	if (proxyPort != 0)
+	request.setServerPort(proxyPort);
+	else
+	request.setServerPort(serverPort);
+	request.setSocket(socket);
+}
+\end{lstlisting}
+\subsection{解析请求}
+parseRequest()与之前版本类似。
+\subsection{解析请求头}
+默认连接器中的parseHeaders()方法使用org.apache.catalina.http包中HttpHeader类和DefaultHeader类。
+\par parseHeaders()使用while读取所有HTTP的请求信息，while循环调用request
+对象的allocateHeader()获取一个内容为空的HttpHeader实例，然后，该实例会被传入SocketInputStream的readHeader()方法中。
+\par 若所有请求头都已经读取过了，则readHeader()不会再给HttpHeader实例设置name属性，这时就可以退出parseHeader()方法。
+\par 如果一个HttpHeader有name，那么它肯定有value：
+\begin{lstlisting}
+private void parseHeaders(SocketInputStream input) throws IOException, ServletException {
+	while (true) {
+		HttpHeader header = request.allocateHeader();
+		
+		// Read the next header
+		input.readHeader(header);
+		if (header.nameEnd == 0) {
+			if (header.valueEnd == 0) {
+				return;
+			} else {
+				throw new ServletException
+				(sm.getString("httpProcessor.parseHeaders.colon"));
+			}
+		}
+		
+		String value = new String(header.value, 0, header.valueEnd);		
+\end{lstlisting}
+\par 然后，将读取到的请求头的name属性值与DefaultHeaders中的标准名称
+比较，这里比较的是字符数组而不是字符串。
+\begin{lstlisting}
+// Set the corresponding request headers
+if (header.equals(DefaultHeaders.AUTHORIZATION_NAME)) {
+	request.setAuthorization(value);
+} else if (header.equals(DefaultHeaders.ACCEPT_LANGUAGE_NAME)) {
+	parseAcceptLanguage(value);
+} else if (header.equals(DefaultHeaders.COOKIE_NAME)) {
+	//parse cookie
+} else if (header.equals(DefaultHeaders.CONTENT_LENGTH_NAME)) {
+	//get content legth
+} else if (header.equals(DefaultHeaders.CONTENT_TYPE_NAME)) {
+	request.setContentType(value);
+} else if (header.equals(DefaultHeaders.HOST_NAME)) {
+	//get host name
+} else if (header.equals(DefaultHeaders.CONNECTION_NAME)) {
+	if (header.valueEquals
+	(DefaultHeaders.CONNECTION_CLOSE_VALUE)) {
+		keepAlive = false;
+		response.setHeader("Connection", "close");
+	}
+//request.setConnection(header);
+/*
+if ("keep-alive".equalsIgnoreCase(value)) {
+keepAlive = true;
+}
+*/
+} else if (header.equals(DefaultHeaders.EXPECT_NAME)) {
+	if (header.valueEquals(DefaultHeaders.EXPECT_100_VALUE))
+		sendAck = true;
+	else
+		throw new ServletException (sm.getString ("httpProcessor.parseHeaders.unknownExpectation"));
+} else if (header.equals(DefaultHeaders.TRANSFER_ENCODING_NAME)) {
+	//request.setTransferEncoding(header);
+}
+
+request.nextHeader();
+\end{lstlisting}
+\section{简单的Container应用程序}
+SimpleContainer实现了org.catalina.Container接口，它可以与默认连接器进行关联，Bootstrap用于启动该应用程序，但移除了连接器模块，以及ServletProcessor和StaticResourceProcessor的使用。
+\begin{lstlisting}
+public class SimpleContainer implements Container {
+	
+	public static final String WEB_ROOT =
+	System.getProperty("user.dir") + File.separator  + "webroot";
+	
+	public SimpleContainer() {
+	}
+	
+	public String getInfo() {
+		return null;
+	}
+	
+	public Loader getLoader() {
+		return null;
+	}
+	
+	public void setLoader(Loader loader) {
+	}
+	
+	public Logger getLogger() {
+		return null;
+	}
+	
+	public void setLogger(Logger logger) {
+	}
+	
+	public Manager getManager() {
+		return null;
+	}
+	
+	public void setManager(Manager manager) {
+	}
+	
+	public Cluster getCluster() {
+		return null;
+	}
+	
+	public void setCluster(Cluster cluster) {
+	}
+	
+	public String getName() {
+		return null;
+	}
+	
+	public void setName(String name) {
+	}
+	
+	public Container getParent() {
+		return null;
+	}
+	
+	public void setParent(Container container) {
+	}
+	
+	public ClassLoader getParentClassLoader() {
+		return null;
+	}
+	
+	public void setParentClassLoader(ClassLoader parent) {
+	}
+	
+	public Realm getRealm() {
+		return null;
+	}
+	
+	public void setRealm(Realm realm) {
+	}
+	
+	public DirContext getResources() {
+		return null;
+	}
+	
+	public void setResources(DirContext resources) {
+	}
+	
+	public void addChild(Container child) {
+	}
+	
+	public void addContainerListener(ContainerListener listener) {
+	}
+	
+	public void addMapper(Mapper mapper) {
+	}
+	
+	public void addPropertyChangeListener(PropertyChangeListener listener) {
+	}
+	
+	public Container findChild(String name) {
+		return null;
+	}
+	
+	public Container[] findChildren() {
+		return null;
+	}
+	
+	public ContainerListener[] findContainerListeners() {
+		return null;
+	}
+	
+	public Mapper findMapper(String protocol) {
+		return null;
+	}
+	
+	public Mapper[] findMappers() {
+		return null;
+	}
+	
+	public void invoke(Request request, Response response)
+	throws IOException, ServletException {
+		
+		String servletName = ( (HttpServletRequest) request).getRequestURI();
+		servletName = servletName.substring(servletName.lastIndexOf("/") + 1);
+		URLClassLoader loader = null;
+		try {
+			URL[] urls = new URL[1];
+			URLStreamHandler streamHandler = null;
+			File classPath = new File(WEB_ROOT);
+			String repository = (new URL("file", null, classPath.getCanonicalPath() + File.separator)).toString() ;
+			urls[0] = new URL(null, repository, streamHandler);
+			loader = new URLClassLoader(urls);
+		}
+		catch (IOException e) {
+			System.out.println(e.toString() );
+		}
+		Class myClass = null;
+		try {
+			myClass = loader.loadClass(servletName);
+		}
+		catch (ClassNotFoundException e) {
+			System.out.println(e.toString());
+		}
+		
+		Servlet servlet = null;
+		
+		try {
+			servlet = (Servlet) myClass.newInstance();
+			servlet.service((HttpServletRequest) request, (HttpServletResponse) response);
+		}
+		catch (Exception e) {
+			System.out.println(e.toString());
+		}
+		catch (Throwable e) {
+			System.out.println(e.toString());
+		}
+		
+		
+		
+	}
+	
+	public Container map(Request request, boolean update) {
+		return null;
+	}
+	
+	public void removeChild(Container child) {
+	}
+	
+	public void removeContainerListener(ContainerListener listener) {
+	}
+	
+	public void removeMapper(Mapper mapper) {
+	}
+	
+	public void removePropertyChangeListener(PropertyChangeListener listener) {
+	}
+	
+}
+\end{lstlisting}
+\par 默认连接器会调用这里的invoke()，invoke()会创建一个类载入器，载入相关的
+servlet类，并调用servlet类的service()方法，该方法与之前的ServletProcessor的process()类似。
+\begin{lstlisting}
+public final class Bootstrap {
+	public static void main(String[] args) {
+		HttpConnector connector = new HttpConnector();
+		SimpleContainer container = new SimpleContainer();
+		connector.setContainer(container);
+		try {
+			connector.initialize();
+			connector.start();
+			
+			// make the application wait until we press any key.
+			System.in.read();
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+}
+\end{lstlisting}
+\par Bootstrap类的main()方法分别创建了org.apache.catalina.connector.http.HttpConnector类和SimpleContainer的一个实例，然后调用连接器的setContainer()将连接器和servlet容器相关联，接下来，调用连接器的initialize()和start()方法。

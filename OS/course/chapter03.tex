@@ -1,0 +1,266 @@
+\chapter{物理内存管理：连续内存分配}
+\section{计算机体系结构和内存层次}
+内存管理：
+\begin{enumerate}
+	\item 抽象
+	\subitem 逻辑地址空间
+	\item 保护
+	\subitem 独立地址空间
+	\item 共享
+	\subitem 访问相同的内存
+	\item 虚拟化
+	\subitem 更大的地址空间
+\end{enumerate}
+操作系统的内存管理方式
+\begin{enumerate}
+	\item 操作系统采用的内存管理方式
+	\subitem 重定位(relocation)
+	\subitem 分段(segmentation)
+	\subitem 分页(paging)
+	\subitem 虚拟存储(virtual memory)
+	\subsubitem 目前多数系统采用按需页式虚拟存储
+	\item 实现高度依赖硬件
+	\subitem 与计算机存储架构紧耦合
+	\subitem MMU(内存管理单元)：处理CPU存储访问请求的硬件
+\end{enumerate}
+
+\section{地址空间和地址生成}
+\subsection{地址空间的定义}
+\begin{enumerate}
+	\item 物理地址空间——硬件支持的地址空间
+	\subitem 起始地址0，直到$MAX_{sys}$
+	\item 逻辑地址空间——在CPU运行的进程看到的地址
+	\subitem 起始地址0，直到$MAX_{prog}$
+\end{enumerate}
+\subsection{逻辑地址的生成}
+高级语言$\rightarrow$汇编语言$\rightarrow$进一步汇编$\rightarrow$
+链接，加上函数库$\rightarrow$重定位，程序加载
+\subsection{地址生成时机和限制}
+\begin{enumerate}
+	\item 编译时
+	\begin{enumerate}
+		\item 假设起始地址已知
+		\item 如果起始地址改变，必须重新编译
+	\end{enumerate}
+	\item 加载时
+	\begin{enumerate}
+		\item 如编译时起始位置未知，编译器需生成可重定位的代码(relocatable code)
+		\item 加载时，生成绝对地址
+	\end{enumerate}
+	\item 执行时
+	\begin{enumerate}
+		\item 执行时代码可移动
+		\item 需地址转换(映射)硬件支持
+	\end{enumerate}
+\end{enumerate}
+\subsection{地址生成过程}
+\begin{enumerate}
+	\item CPU
+	\begin{enumerate}
+		\item ALU：需要逻辑地址的内存内容
+		\item MMU：进行逻辑地址和物理地址的转换
+		\item CPU控制逻辑：给总线发送物理地址请求
+	\end{enumerate}
+	\item 内存
+	\begin{enumerate}
+		\item 发送物理地址的内容给CPU
+		\item 或接受CPU数据到物理地址
+	\end{enumerate}
+	\item 操作系统
+	\subitem 建立逻辑地址LA和物理地址PA的映射
+\end{enumerate}
+\subsection{地址检查}
+进程P逻辑地址空间$\rightarrow$CPU$\rightarrow$逻辑地址，端长度寄存器，检查内存是否异常（检查偏移量）$\rightarrow$如果正常，交给段基址寄存器，生成物理地址
+$\rightarrow$到内存中找出数据\par
+操作系统影响：段长度寄存器、段基址寄存器，设置起始（base）和最大（limit）
+逻辑地址空间
+
+\section{连续内存分配}
+\subsection{连续内存分配和内存碎片}
+\begin{itemize}
+	\item 计算机体系结构/内存层次
+	\subitem 给进程分配一块不小于指定大小的连续的物理内存区域
+	\item 内存碎片
+	\subitem 空闲内存不能被使用
+	\item 外部碎片
+	\subitem 分配单元之间的未被利用内存
+	\item 内部碎片
+	\subitem 分配单元内部的未被使用内存
+	\subitem 取决于分配单元大小是否要取整
+\end{itemize}
+\subsection{连续内存分配：动态分区分配}
+\begin{itemize}
+	\item 动态分区分配
+	\begin{enumerate}
+		\item 当程序被加载执行时，分配一个进程指定大小可变的分区(块、内存块)
+		\item 分区的地址是连续的
+	\end{enumerate}
+	\item 操作系统需要维护的数据结构
+	\begin{enumerate}
+		\item 所有进程的已分配分区
+		\item 空闲分区(Empty-blocks)
+	\end{enumerate}
+	\item \textbf{动态分区分配策略}
+	\begin{enumerate}
+		\item 最先匹配(First-fit)
+		\item 最佳匹配(Best-fit)
+		\item 最差匹配(Worst-fit)
+	\end{enumerate}
+\end{itemize}
+\subsection{最先匹配(First Fit Allocation)策略}
+思路：分配n个字节，使用第一个可用的空间比n大的空闲块\\
+原理\&实现
+\begin{enumerate}
+	\item 空闲分区列表按地址顺序排序
+	\item 分配过程时，搜索一个合适的分区
+	\item 释放分区时，检查是否可与临近的空闲分区合并
+\end{enumerate}
+优点
+\begin{enumerate}
+	\item 简单
+	\item 在高地址空间有大块的空闲分区
+\end{enumerate}
+缺点
+\begin{enumerate}
+	\item 外部碎片
+	\item 分配大块时较慢
+\end{enumerate}
+\subsection{最佳匹配(Best Fit Allocation)策略}
+思路：分配n字节分区时，查找并使用不小于n的最小空闲分区\\
+原理\&实现
+\begin{enumerate}
+	\item 空闲分区列表按照大小排序
+	\item 分配时，差找一个合适的分区
+	\item 释放时，查找并合并临近的空闲分区(如果找到)
+\end{enumerate}
+优点
+\begin{enumerate}
+	\item 大部分分配的尺寸较小时，效果很好
+	\subitem 可避免大的空闲分区被拆分
+	\subitem 可减少外部碎片的大小
+	\subitem 相对简单
+\end{enumerate}
+缺点
+\begin{enumerate}
+	\item 外部碎片
+	\item 释放分区较慢
+	\item 容易产生很多无用的小碎片
+\end{enumerate}
+\subsection{最差匹配(Worst Fit Allocation)策略}
+思路：分配n字节，使用尺寸不小于n的最大空闲分区\\
+原理\&实现
+\begin{enumerate}
+	\item 空闲分区列表按照大小排序
+	\item 分配时，选最大的分区
+	\item 释放时，查找并合并临近的空闲分区，进行可能的合并，并调整空闲分区列表顺序
+\end{enumerate}
+优点
+\begin{enumerate}
+	\item 中等大小的分配较多时，效果最好
+	\item 避免出现太多的小碎片
+\end{enumerate}
+缺点
+\begin{enumerate}
+	\item 外部碎片
+	\item 释放分区较慢
+	\item 容易破坏大的空闲分区，因此后续难以分配大的分区
+\end{enumerate}
+\section{碎片整理}
+\subsection{碎片整理：紧凑(compaction)}
+碎片整理：通过调整进程占用的分区位置来减少或避免分区碎片\par
+碎片紧凑：通过分配给进程的内存分区，以合并外部碎片。\par
+碎片紧凑的条件：所有的应用程序可动态重定位\par
+注：什么时候移动，开销
+\subsection{碎片整理：分区对换(Swapping in/out)}
+分区对换：通过抢占并回收等待状态进程的分区，以增大可用内存空间。\par
+在早期内存紧张时，可实现多进程交替。
+
+\section{伙伴系统}
+\subsection{伙伴系统(Buddy System)}
+\begin{itemize}
+	\item 约定整个可分配的分区的大小为$2^U$
+	\item 需要的分区大小为$2^{U-1}<s\le2^U$时，把整个块分配给该进程
+	\subitem 如$s\le2^{i-1}$，将大小为$2^i$的空闲分区划分为两个大小为
+	$2^{i-1}-1$的空闲分区
+	\subitem 重复切块过程，直到$2^{i-1}<s\le2^i$，并把一个空闲分区分配给该进程
+\end{itemize}
+\subsection{伙伴系统的实现}
+\subsubsection{数据结构}
+\begin{itemize}
+	\item 空闲块按大小和起始地址组织成二维数组
+	\item 初始状态：只有一个大小为$2^U$的空闲块
+\end{itemize}
+\subsubsection{分配过程}
+\begin{itemize}
+	\item 由小到大在空闲块数组中找最小的可用空闲块
+	\item 如果空闲块过大，对可用空闲块进行二等分，直到得到合适的可用空闲块
+\end{itemize}
+\subsubsection{释放过程}
+\begin{itemize}
+	\item 把释放的块放入空闲块数组
+	\item 合并满足合并条件的空闲块
+\end{itemize}
+合并条件
+\begin{itemize}
+	\item 大小相同$2^i$
+	\item 地址相邻
+	\item 起始地址较小的块的起始地址必须是$2^{i+1}$的倍数
+\end{itemize}
+\subsection{ucore中的物理内存管理}
+\begin{lstlisting}
+struct pmm_manager {
+	const char *name;
+	void (*init)(void);
+	void (*init_memmap)(struct Page *base, size_t n);
+	struct Page *(*alloc_pages)(size_t order);
+	void (*free_pages)(struct Page *base, size_t n);
+	size_t (*nr_free_pages)(void);
+	void (*check)(void);
+}
+\end{lstlisting}
+\section{问题}
+\begin{enumerate}
+\item 在启动页机制的情况下，在CPU运行的用户进程访问的地址空间是(B)
+\begin{enumerate}[A]
+	\item 物理地址空间
+	\item 逻辑地址空间
+	\item 外设地址空间
+	\item 都不是
+\end{enumerate}
+用户进程访问的内存地址是虚拟地址
+
+\item 在使能分页机制的情况下，更合适的外碎片整理方法是(C)
+\begin{enumerate}[A]
+	\item 紧凑(compaction)
+	\item 分区对换(Swapping in/out)
+	\item 都不是
+\end{enumerate}	
+分页方式不会有外碎片
+
+\item 操作系统中可采用的内存管理方式包括(ABCD)
+\begin{enumerate}[A]
+	\item 重定位(relocation)
+	\item 分段(segmentation
+	\item 分页(paging)
+	\item 段页式（segmentation+paging）
+	
+\end{enumerate}	
+
+
+\item 连续内存分配的算法中，会产生外碎片的是(ABC)
+\begin{enumerate}[A]
+	\item 最先匹配算法
+	\item 最差匹配算法
+	\item 最佳匹配算法
+	\item 都不会
+\end{enumerate}	
+
+
+\item 描述伙伴系统(Buddy System)特征正确的是(ABC)
+\begin{enumerate}[A]
+	\item 多个小空闲空间可合并为大的空闲空间
+	\item 会产生外碎片
+	\item 会产生内碎片
+	\item 都不对
+\end{enumerate}	
+\end{enumerate}

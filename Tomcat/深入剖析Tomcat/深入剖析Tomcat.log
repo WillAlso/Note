@@ -1,4 +1,4 @@
-This is XeTeX, Version 3.14159265-2.6-0.999991 (MiKTeX 2.9.7250 64-bit) (preloaded format=xelatex 2019.11.24)  5 DEC 2019 16:59
+This is XeTeX, Version 3.14159265-2.6-0.999991 (MiKTeX 2.9.7250 64-bit) (preloaded format=xelatex 2019.11.24)  18 DEC 2019 19:24
 entering extended mode
 **./深入剖析Tomcat.tex
 (深入剖析Tomcat.tex
@@ -675,7 +675,8 @@ Package: xeCJK-listings 2019/06/02 v3.7.4 xeCJK patch file for listings
 \l__xeCJK_listings_max_char_int=\count297
 \l__xeCJK_listings_flag_int=\count298
 ) (深入剖析Tomcat.aux
-(chapter01.aux))
+(chapter01.aux) (chapter02.aux) (chapter03.aux) (chapter04.aux) (chapter05.aux)
+)
 \openout1 = `深入剖析Tomcat.aux'.
 
 LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 33.
@@ -830,23 +831,22 @@ LaTeX Font Info:    External font `cmex10' loaded for size
 (Font)              <8> on input line 2.
 LaTeX Font Info:    External font `cmex10' loaded for size
 (Font)              <6> on input line 2.
-)
+ [3])
 \tf@toc=\write4
 \openout4 = `深入剖析Tomcat.toc'.
 
- [3]
+LaTeX Font Info:    Font shape `TU/SimSun(0)/m/sl' in size <12> not available
+(Font)              Font shape `TU/SimSun(0)/m/it' tried instead on input line 
+36.
+ [4]
 \openout2 = `chapter01.aux'.
 
  (chapter01.tex
-LaTeX Font Info:    Font shape `TU/SimSun(0)/m/sl' in size <12> not available
-(Font)              Font shape `TU/SimSun(0)/m/it' tried instead on input line 
-1.
- [4
+第一章
+[5
 
 
 ]
-第一章
-[5]
 
 Package fontspec Info: Could not resolve font "FangSong/BI" (it probably
 (fontspec)             doesn't exist).
@@ -870,23 +870,147 @@ Package fontspec Info: Font family 'FangSong(0)' created for font 'FangSong'
 (fontspec)             <->"FangSong/OT:script=hani;language=DFLT;"
 (fontspec)             - 'small caps'  (m/sc) with NFSS spec.: 
 
-) [6]
-Package atveryend Info: Empty hook `BeforeClearDocument' on input line 37.
-Package atveryend Info: Empty hook `AfterLastShipout' on input line 37.
- (深入剖析Tomcat.aux (chapter01.aux))
-Package atveryend Info: Empty hook `AtVeryEndDocument' on input line 37.
-Package atveryend Info: Executing hook `AtEndAfterFileList' on input line 37.
+ [6] [7]
+Underfull \vbox (badness 10000) has occurred while \output is active []
+
+ [8]
+[9]
+Underfull \vbox (badness 10000) has occurred while \output is active []
+
+ [10]
+[11]) [12]
+\openout2 = `chapter02.aux'.
+
+ (chapter02.tex
+第二章
+
+Overfull \hbox (38.17351pt too wide) in paragraph at lines 17--18
+[]\TU/SimSun(0)/m/n/12 针 对 每 一 个 \TU/lmr/m/n/12 request \TU/SimSun(0)/m/n/12 请 
+求，|  创 建 一 个 \TU/lmr/m/n/12 javax.serlvet.ServletRequest \TU/SimSun(0)/m/n/12 和
+ \TU/lmr/m/n/12 javax.serlvet.ServletResponse
+ []
+
+[13
+
+
+
+]
+Underfull \vbox (badness 10000) has occurred while \output is active []
+
+ [14]
+Underfull \vbox (badness 10000) has occurred while \output is active []
+
+ [15]
+[16]
+Underfull \vbox (badness 10000) has occurred while \output is active []
+
+ [17]
+Underfull \vbox (badness 10000) has occurred while \output is active []
+
+ [18]
+Underfull \vbox (badness 10000) has occurred while \output is active []
+
+ [19]
+[20]
+Underfull \vbox (badness 10000) has occurred while \output is active []
+
+ [21]
+Underfull \vbox (badness 10000) has occurred while \output is active []
+
+ [22]
+[23]
+Underfull \vbox (badness 10000) has occurred while \output is active []
+
+ [24]
+[25] [26]) [27]
+\openout2 = `chapter03.aux'.
+
+ (chapter03.tex [28
+
+
+
+]
+第三章
+[29] [30] [31] [32] [33] [34]
+Underfull \vbox (badness 10000) has occurred while \output is active []
+
+ [35]
+[36]
+Underfull \hbox (badness 10000) in paragraph at lines 249--250
+
+ []
+
+[37] [38]
+Underfull \vbox (badness 10000) has occurred while \output is active []
+
+ [39]
+[40]
+Underfull \vbox (badness 10000) has occurred while \output is active []
+
+ [41]
+[42]) [43]
+\openout2 = `chapter04.aux'.
+
+ (chapter04.tex [44
+
+
+
+]
+第四章
+[45] [46] [47] [48] [49] [50] [51] [52]
+Overfull \hbox (1.6319pt too wide) in paragraph at lines 243--244
+[]\TU/lmr/m/n/12 SimpleContainer \TU/SimSun(0)/m/n/12 实 现 了 \TU/lmr/m/n/12 org.
+catalina.Container \TU/SimSun(0)/m/n/12 接 口，|  它 可 以 与 默 认 连 接 器 进 行 关 联，| \TU/
+lmr/m/n/12 Boot-
+ []
+
+[53]
+Underfull \vbox (badness 10000) has occurred while \output is active []
+
+ [54]
+Underfull \vbox (badness 10000) has occurred while \output is active []
+
+ [55]
+Underfull \vbox (badness 10000) has occurred while \output is active []
+
+ [56]
+Underfull \vbox (badness 10000) has occurred while \output is active []
+
+ [57]
+[58])
+Overfull \hbox (1.43115pt too wide) in paragraph at lines 433--39
+[]\TU/lmr/m/n/12 Bootstrap \TU/SimSun(0)/m/n/12 类 的 \TU/lmr/m/n/12 main() \TU/S
+imSun(0)/m/n/12 方 法 分 别 创 建 了 \TU/lmr/m/n/12 org.apache.catalina.connector.http
+.HttpConnector
+ []
+
+[59]
+\openout2 = `chapter05.aux'.
+
+ (chapter05.tex [60
+
+
+
+]
+第五章
+[61]) [62]
+Package atveryend Info: Empty hook `BeforeClearDocument' on input line 41.
+Package atveryend Info: Empty hook `AfterLastShipout' on input line 41.
+ (深入剖析Tomcat.aux (chapter01.aux) (chapter02.aux) (chapter03.aux)
+(chapter04.aux) (chapter05.aux))
+Package atveryend Info: Empty hook `AtVeryEndDocument' on input line 41.
+Package atveryend Info: Executing hook `AtEndAfterFileList' on input line 41.
 Package rerunfilecheck Info: File `深入剖析Tomcat.out' has not changed.
-(rerunfilecheck)             Checksum: 6C67B3AA4DDAAF941B04DFC1ED36F083.
-Package atveryend Info: Empty hook `AtVeryVeryEnd' on input line 37.
+(rerunfilecheck)             Checksum: BD8EC59EC8751070CB2FF2A38F475F28.
+Package atveryend Info: Empty hook `AtVeryVeryEnd' on input line 41.
  ) 
 Here is how much of TeX's memory you used:
- 26503 strings out of 427240
- 532805 string characters out of 3148342
- 883298 words of memory out of 3000000
- 30749 multiletter control sequences out of 15000+200000
- 536725 words of font info for 72 fonts, out of 3000000 for 9000
+ 27005 strings out of 427240
+ 544275 string characters out of 3148342
+ 885269 words of memory out of 3000000
+ 31222 multiletter control sequences out of 15000+200000
+ 536733 words of font info for 73 fonts, out of 3000000 for 9000
  1348 hyphenation exceptions out of 8191
- 58i,6n,70p,489b,1050s stack positions out of 5000i,500n,10000p,200000b,50000s
+ 58i,6n,70p,489b,1798s stack positions out of 5000i,500n,10000p,200000b,50000s
 
-Output written on 深入剖析Tomcat.pdf (6 pages).
+Output written on 深入剖析Tomcat.pdf (62 pages).

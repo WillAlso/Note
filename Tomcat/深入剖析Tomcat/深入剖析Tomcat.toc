@@ -3,3 +3,46 @@
 \contentsline {subsection}{\numberline {1.1.1}HTTP请求}{5}{subsection.1.1.1}%
 \contentsline {subsection}{\numberline {1.1.2}HTTP响应}{5}{subsection.1.1.2}%
 \contentsline {section}{\numberline {1.2}Socket类}{6}{section.1.2}%
+\contentsline {subsection}{\numberline {1.2.1}ServerSocket类}{7}{subsection.1.2.1}%
+\contentsline {section}{\numberline {1.3}应用程序}{7}{section.1.3}%
+\contentsline {subsection}{\numberline {1.3.1}HttpServer}{7}{subsection.1.3.1}%
+\contentsline {subsection}{\numberline {1.3.2}Request}{9}{subsection.1.3.2}%
+\contentsline {subsection}{\numberline {1.3.3}Response}{11}{subsection.1.3.3}%
+\contentsline {chapter}{\numberline {第二章\hspace {.3em}}一个简单的servlet容器}{13}{chapter.2}%
+\contentsline {section}{\numberline {2.1}javax.servlet.Servlet接口}{13}{section.2.1}%
+\contentsline {section}{\numberline {2.2}应用程序1}{13}{section.2.2}%
+\contentsline {subsection}{\numberline {2.2.1}HttpServer1类}{13}{subsection.2.2.1}%
+\contentsline {subsection}{\numberline {2.2.2}Request类}{16}{subsection.2.2.2}%
+\contentsline {subsection}{\numberline {2.2.3}Response类}{20}{subsection.2.2.3}%
+\contentsline {subsection}{\numberline {2.2.4}StaticResourceProcessor}{23}{subsection.2.2.4}%
+\contentsline {subsection}{\numberline {2.2.5}ServletProcessor1}{23}{subsection.2.2.5}%
+\contentsline {section}{\numberline {2.3}应用程序2}{25}{section.2.3}%
+\contentsline {chapter}{\numberline {第三章\hspace {.3em}}连接器}{29}{chapter.3}%
+\contentsline {section}{\numberline {3.1}StringManager}{29}{section.3.1}%
+\contentsline {section}{\numberline {3.2}应用程序}{29}{section.3.2}%
+\contentsline {subsection}{\numberline {3.2.1}启动应用程序}{30}{subsection.3.2.1}%
+\contentsline {subsection}{\numberline {3.2.2}HttpConnector类}{31}{subsection.3.2.2}%
+\contentsline {subsection}{\numberline {3.2.3}创建HttpRequest对象}{33}{subsection.3.2.3}%
+\contentsline {subsection}{\numberline {3.2.4}创建HttpResponse对象}{42}{subsection.3.2.4}%
+\contentsline {subsection}{\numberline {3.2.5}静态资源处理器和servlet处理器}{43}{subsection.3.2.5}%
+\contentsline {chapter}{\numberline {第四章\hspace {.3em}}Tomcat的默认连接器}{45}{chapter.4}%
+\contentsline {section}{\numberline {4.1}HTTP1.1的新特性}{45}{section.4.1}%
+\contentsline {subsection}{\numberline {4.1.1}持久连接}{45}{subsection.4.1.1}%
+\contentsline {subsection}{\numberline {4.1.2}块编码}{45}{subsection.4.1.2}%
+\contentsline {subsection}{\numberline {4.1.3}状态码100的使用}{46}{subsection.4.1.3}%
+\contentsline {section}{\numberline {4.2}Connector接口}{46}{section.4.2}%
+\contentsline {section}{\numberline {4.3}HttpConnector类}{46}{section.4.3}%
+\contentsline {subsection}{\numberline {4.3.1}创建服务器套接字}{46}{subsection.4.3.1}%
+\contentsline {subsection}{\numberline {4.3.2}维护HttpProcessor实例}{46}{subsection.4.3.2}%
+\contentsline {subsection}{\numberline {4.3.3}提供HTTP请求服务}{47}{subsection.4.3.3}%
+\contentsline {section}{\numberline {4.4}HttpProcessor类}{48}{section.4.4}%
+\contentsline {section}{\numberline {4.5}Request对象}{49}{section.4.5}%
+\contentsline {section}{\numberline {4.6}Response对象}{50}{section.4.6}%
+\contentsline {section}{\numberline {4.7}处理请求}{50}{section.4.7}%
+\contentsline {subsection}{\numberline {4.7.1}解析连接}{51}{subsection.4.7.1}%
+\contentsline {subsection}{\numberline {4.7.2}解析请求}{51}{subsection.4.7.2}%
+\contentsline {subsection}{\numberline {4.7.3}解析请求头}{51}{subsection.4.7.3}%
+\contentsline {section}{\numberline {4.8}简单的Container应用程序}{53}{section.4.8}%
+\contentsline {chapter}{\numberline {第五章\hspace {.3em}}servlet容器}{61}{chapter.5}%
+\contentsline {section}{\numberline {5.1}Container接口}{61}{section.5.1}%
+\contentsline {section}{\numberline {5.2}管道任务}{62}{section.5.2}%

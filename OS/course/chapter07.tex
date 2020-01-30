@@ -1,0 +1,48 @@
+\chapter{进程和线程}
+\subsection{进程的定义}
+进程是指一个具有一定\textbf{独立功能}的程序在一个\textbf{数据集合}上的一次\textbf{动态执行}过程。
+\subsection{进程的组成}
+进程包含了正在运行的一个程序的所有状态信息。
+\begin{itemize}
+	\item 代码
+	\item 数据
+	\item 状态寄存器
+	\subitem CPU状态CR0、指令指针IP
+	\item 通用寄存器
+	\subitem AX、BX、CX
+	\item 进程占用系统资源
+	\subitem 打开文件、已分配内存
+\end{itemize}
+\subsection{进程的特点}
+\begin{itemize}
+	\item 动态性
+	\subitem 可动态地创建、结束进程
+	\item 并发性
+	\subitem 进程可以被独立调度并占用处理机运行
+	\item 独立性
+	\subitem 不同进程的工作不相互影响
+	\item 制约性
+	\subitem 因访问共享数据/资源或进程间同步而产生制约
+\end{itemize}
+\subsection{进程与程序的联系}
+\begin{itemize}
+	\item 进程是操作系统处于执行状态程序的抽象
+	\subitem 程序=文件(静态的可执行文件)
+	\subitem 进程=执行中的程序=程序+执行状态
+	\item 同一个程序的多次执行过程对应为不同进程
+	\subitem 如命令“ls”的多次执行对应多个进程
+	\item 进程执行需要的资源
+	\subitem 内存：保护代码和数据
+	\subitem CPU：执行指令
+\end{itemize}
+\subsection{进程与程序的区别}
+\begin{itemize}
+	\item 进程是动态的，程序是静态的
+	\subitem 程序是有序代码的集合
+	\subitem 进程是程序的执行，进程有核心态/用户态
+	\item 进程是暂时的，程序的永久的
+	\subitem 进程是一个状态变化的过程
+	\subitem 程序可长久保存
+	\item 进程与程序的组成不同
+	\subitem 进程的组成包括程序、数据和进程控制块
+\end{itemize}

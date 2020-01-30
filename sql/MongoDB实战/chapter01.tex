@@ -1,0 +1,18 @@
+\chapter{全新Web数据库}
+\section{为互联网而生}
+2007年，由10gen开发，设计目标：极简、灵活、作为Web应用栈的一部分。
+
+\section{MongoDB键特性}
+\subsection{文档数据模型}
+MongoDB面向文档，JSON格式文档。
+\par 从内部来将，MongoDB以二进制JSON格式存档文档数据——BSON，当查询MongoDB并返回结果时，这些数据转换为易于阅读的数据格式。
+\par 关系型数据库包含表，MongoDB拥有集合。
+\subsubsection*{无schema模型的优点}
+\begin{itemize}
+	\item 应用程序的代码强制数据结构而不是数据库，频繁修改数据定义的时候
+	可以加速应用开发。
+	\item 允许用户使用真正的变量属性来表示数据。
+\end{itemize}
+\par 文档建模不需要关联，可以动态地添加新的属性。
+\subsection{ad hoc查询}
+主动查询模式（ad hoc queries）是指不需要事先定义系统接收何种查询。

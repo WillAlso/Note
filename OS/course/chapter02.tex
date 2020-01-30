@@ -1,0 +1,428 @@
+\chapter{启动、中断、异常和系统调用}
+\section{BIOS}
+内存分为2个部分：RAM和ROM。\\
+CPU加电，初始化寄存器完成后，到内存中的BIOS启动固件中读取：
+\par 
+CS:IP=0xf000:fff0，CS代码段寄存器，IP指令指针寄存器，系统处于实模式。
+\par PC=16*CS+IP，20位地址空间，1MB\\
+BIOS启动固件的功能：
+\begin{itemize}
+	\item 基本输入输出的程序
+	\item 系统设置信息
+	\item 开机后自检程序
+	\item 系统自启动程序
+\end{itemize}
+BIOS工作后：
+\begin{itemize}
+	\item 将加载程序从磁盘的引导扇区(512字节)加载到0x7c00
+	\item 跳转到CS:IP=0000:7c00(加载程序)
+\end{itemize}
+加载程序：
+\begin{itemize}
+	\item 将操作系统的代码和数据从硬盘加载到内存中
+	\item 跳转到操作系统的起始地址
+\end{itemize}
+\subsection{BIOS系统调用}
+\begin{itemize}
+	\item BIOS以中断调用的方式提供了基本的I/O功能
+	\subitem INT 10h：字符显示
+	\subitem INT 13h：磁盘扇区读写
+	\subitem INT 15h：检测内存大小
+	\subitem INT 16h：键盘键入
+	\item 只能在x86的实模式下访问
+\end{itemize}
+
+\section{系统启动流程}
+\begin{enumerate}
+	\item BIOS：系统加电，BIOS初始化硬件；
+	\item 主引导记录：BIOS读取主引导扇区代码；
+	\item 活动分区：主引导扇区代码读取活动分区的引导扇区代码；
+	\item 加载程序：引导扇区代码读取文件系统的加载程序。
+\end{enumerate}
+\subsection{CPU初始化}
+\begin{enumerate}
+	\item CPU初始化
+	\subitem CPU加电稳定后从0XFFFF0读第一条指令
+	\begin{itemize}
+		\item CS:IP=0xf000:fff0
+		\item 第一条指令是跳转指令
+	\end{itemize}
+
+\subitem CPU初始化状态为16位实模式
+\begin{itemize}
+	\item CS:IP是16位寄存器
+	\item 指令指针PC=16*CS+IP
+	\item 最大地址空间是1MB（只能是最下面的1MB）
+\end{itemize}
+\item 硬件自检POST
+\begin{itemize}
+	\item 检测系统中内存和显卡等关键部件的存在和工作状态
+	\item 查找并执行显卡等接口卡BIOS，进行设备初始化
+\end{itemize}
+\item 执行系统的BIOS，进行系统检测：检测和配置系统中安装的即插即用设备
+\item 更新CMOS中的扩展系统配置数据ESCD
+\item 按指定启动顺序从软盘、硬盘或光驱启动
+\end{enumerate}
+\subsection{主引导记录MBR格式}
+\textbf{启动代码}：446字节（总共512字节）
+\begin{itemize}
+	\item 检查分区表正确性
+	\item 加载并跳转到磁盘上的引导程序
+\end{itemize}
+\textbf{硬盘分区表}：64字节
+\begin{itemize}
+	\item 描述分区状态和位置
+	\item 每个分区描述信息占据16字节
+\end{itemize}
+\textbf{结束标志字}：2字节（55AA）
+\begin{itemize}
+	\item 主引导记录的有效标志
+\end{itemize}
+\subsection{分区引导扇区格式}
+跳转指令：跳转到启动代码：与平台相关代码\\
+文件卷头：文件系统描述信息\\
+启动代码：跳转到加载程序\\
+结束标志：55AA
+\subsection{加载程序bootloader}
+\begin{enumerate}
+	\item 加载程序：从文件系统中读取启动配置信息
+	\item 启动菜单：可选的操作系统内核列表和加载参数
+	\item 操作系统内核：依据配置加载指定内核并跳转到内核执行
+\end{enumerate}
+\subsection{系统启动规范}
+\begin{enumerate}
+	\item BIOS
+	\begin{itemize}
+		\item 固化到计算机主板上的程序
+		\item 包括系统设置、自检程序和系统自启动程序
+		\item BIOS-MBR(最多4个分区)、BIOS-GPT(多分区)、PXE(网络启动)
+	\end{itemize}
+\item UEFI
+\begin{itemize}
+	\item 接口标准
+	\item 在所有平台上一致的操作系统启动服务
+\end{itemize}
+\end{enumerate}
+
+\section{中断、异常和系统调用比较}
+\subsection{背景}
+为什么需要中断、异常和系统调用
+\begin{itemize}
+	\item 在计算机运行中，内核是被信任的第三方
+	\item 只有内核可以执行特权指令
+	\item 方便应用程序
+\end{itemize}
+为什么需要中断、异常和系统调用
+\begin{itemize}
+	\item 当外设连接计算机时，会出现什么现象？
+	\item 当应用程序处理意想不到的行为时，会出现什么现象？
+\end{itemize}
+系统调用希望解决的问题
+\begin{itemize}
+	\item 用户应用程序是如何得到系统服务？
+	\item 系统调用和功能调用的不同之处是什么？
+\end{itemize}
+系统调用(system call)：应用程序主动向操作系统发出的服务请求；\\
+异常(exception)：非法指令或者其它原因导致当前\textbf{指令执行失败}后的处理强求。\\
+中断(hardware interrupt)：来自硬件设备的处理请求。\\
+\subsection{中断、异常和系统调用比较}
+\begin{enumerate}
+	\item 源头：
+	\begin{itemize}
+		\item 中断：外设
+		\item 异常：应用程序意想不到的行为
+		\item 系统调用：应用程序请求操作提供服务
+	\end{itemize}
+	\item 响应方式
+	\begin{itemize}
+		\item 中断：异步
+		\item 异常：同步
+		\item 系统调用：异步或同步
+	\end{itemize}
+	\item 处理机制
+	\begin{itemize}
+		\item 中断：持续，对用户应用程序是透明的
+		\item 异常：杀死或者更细重新执行意想不到的应用程序指令
+		\item 系统调用：等待和持续
+	\end{itemize}
+\end{enumerate}
+\subsection{中断处理机制}
+\begin{enumerate}
+	\item 硬件处理：在CPU初始化时设置中断使能标志，
+	\subitem 依据内部或外部事件设置中断标志
+	\subitem 依据中断向量调用相应中断服务例程
+	\item 软件
+	\begin{itemize}
+		\item 现场保存(编译器)
+		\item 中断服务处理(服务例程)
+		\item 清除中断标记(服务例程)
+		\item 现场恢复(编译器)
+	\end{itemize}
+\end{enumerate}
+\subsection{中断嵌套}
+\begin{enumerate}
+	\item 硬件中断服务例程可被打断
+	\begin{enumerate}
+		\item 不同硬件中断源可能硬件中断处理时出现
+		\item 硬件中断服务例程中需要临时禁止中断请求
+		\item 中断请求会保持CPU做出响应
+	\end{enumerate}
+	\item 异常服务例程可被打断
+	\begin{itemize}
+		\item 异常服务例程执行时可能出现硬件中断
+	\end{itemize}
+	\item 异常服务例程可嵌套
+	\begin{itemize}
+		\item 异常服务例程可能出现缺页
+	\end{itemize}
+\end{enumerate}
+\subsection{问题}
+\begin{enumerate}
+	\item 下列选项中，不可能在用户态发生的是（C ）
+	\begin{enumerate}[A]
+		\item 系统调用
+		\item 外部中断
+		\item 进程切换
+		\item 缺页
+	\end{enumerate}
+系统调用是提供给应用程序使用的，由用户态发出，进入内核态执行。外部中断随时可能发生；应用程序执行时可能发生缺页；进程切换完全由内核来控制。
+\item 中断处理和子程序调用都需要压栈以保护现场。中断处理一定会保存而子程序调用不需要保存其内容的是（B ）
+\begin{enumerate}[A]
+	\item 程序计数器
+	\item 程序状态字寄存器
+	\item 通用数据寄存器
+	\item 通用地址寄存器
+\end{enumerate}
+程序状态字（PSW）寄存器用于记录当前处理器的状态和控制指令的执行顺序，并且保留与运行程序相关的各种信息，主要作用是实现程序状态的保护和恢复。所以中断处理程序要将PSW保存，子程序调用在进程内部执行，不会更改PSW。
+
+
+\item 中断向量地址是（B ）
+\begin{enumerate}[A]
+	\item 子程序入口地址
+	\item 中断服务例程入口地址
+	\item 中断服务例程入口地址的地址
+	\item 例行程序入口地址
+\end{enumerate}
+\item 下列选项中， ()可以执行特权指令？
+\begin{enumerate}[A]
+	\item 中断处理例程
+	\item 普通用户的程序
+	\item 通用库函数
+	\item 管理员用户的程序
+\end{enumerate}
+中断处理例程（也可称为中断处理程序）需要执行打开中断，关闭中断等特权指令，而这些指令只能在内核态下才能正确执行，所以中断处理例程位于操作系统内核中。而1,3,4都属于用户程序和用于用户程序的程序库。 以ucore OS为例，在lab1中就涉及了中断处理例程，可查看intr\_enable，sti，trap等函数完成了啥事情?被谁调用了?
+
+
+\item 一般来讲，中断来源于（A）
+\begin{enumerate}[A]
+	\item 外部设备
+	\item 应用程序主动行为
+	\item 操作系统主动行为
+	\item 软件故障
+\end{enumerate}
+中断来源与外部设备，外部设备通过中断来通知CPU与外设相关的各种事件。第2选项如表示是应用程序向操作系统发出的主动行为，应该算是系统调用请求。第4选项说的软件故障也可称为软件异常，比如除零錯等。 以ucore OS为例，外设产生的中断典型的是时钟中断、键盘中断、串口中断。在lab1中，具体的中断处理例程在trap.c文件中的trap\_dispatch函数中有对应的实现。对软件故障/异常的处理也在trap\_dispatch函数中的相关case default的具体实现中完成。在lab1的challenge练习中和lab5中，有具体的系统调用的设计与实现。
+
+\item 用户程序通过\_\_\_\_向操作系统提出访问外部设备的请求（B）
+\begin{enumerate}[A]
+	\item I/O指令
+	\item 系统调用
+	\item 中断
+	\item 创建新的进程
+\end{enumerate}
+具体内容可参见10.的回答。 以ucore OS为例，在lab5中有详细的syscall机制的设计实现。比如用户执行显示输出一个字符的操作，由于涉及向屏幕和串口等外设输出字符，需要向操作系统发出请求，具体过程是应用程序运行在用户态，通过用户程序库函数cputch，会调用sys\_putc函数，并进一步调用syscall函数（在usr/libs/syscall.c文件中），而这个函数会执行“int 0x80”来发出系统调用请求。在ucore OS内核中，会接收到这个系统调用号（0x80）的中断（参见 kernel/trap/trap.c中的trap\_dispatch函数有关 “case T\_SYSCALL:”的实现）,并进一步调用内核syscall函数（参见 kernel/syscall/syscall.c中的实现）来完成用户的请求。内核在内核态（也称特权态）完成后，通过执行“iret”指令（kernel/trap/trapentry.S中的“\_\_trapret:”下面的指令），返回到用户态应用程序发出系统调用的下一条指令继续执行应用程序。
+
+\item 应用程序引发异常的时候，操作系统可能的反应是（C）
+\begin{enumerate}[A]
+	\item 删除磁盘上的应用程序
+	\item 重启应用程序
+	\item 杀死应用程序
+	\item 修复应用程序中的错误
+\end{enumerate}
+更合适的答案是3。因为应用程序发生异常说明应用程序有错误或bug，如果应用程序无法应对这样的错误，这时再进一步执行应用程序意义不大。如果应用程序可以应对这样的错误（比如基于当前c++或java的提供的异常处理机制，或者基于操作系统的信号（signal）机制（后续章节“进程间通信”会涉及）），则操作系统会让应用程序转到应用程序的对应处理函数来完成后续的修补工作。 以ucore OS为例，目前的ucore实现在应对应用程序异常时做的更加剧烈一些。在lab5中有有对用户态应用程序访问内存产生错误异常的处理（参见 kernel/trap/trap.c中的trap\_dispatch函数有关 “case T\_PGFLT: ”的实现），即ucore判断用户态程序在运行过程中发生了内存访问错误异常，这是ucore认为重点是查找错误，所以会调用panic函数，进入kernel的监控器子系统，便于开发者查找和发现问题。这样ucore也就不再做正常工作了。当然，我们可以简单修改ucore当前的实现，不进入内核监控器，而是直接杀死进程即可。你能完成这个修改吗？
+
+\item 操作系统与用户的接口包括\_\_\_\_（A）
+\begin{enumerate}[A]
+	\item 系统调用
+	\item 进程调度
+	\item 中断处理
+	\item 程序编译
+\end{enumerate}
+更合适的答案是1。根据对当前操作系统设计与实现的理解，系统调用是应用程序向操作系统发出服务请求并获得操作系统服务的唯一通道和结果。
+
+\item 操作系统处理中断的流程包括\_\_\_\_（ABCD）
+\begin{enumerate}[A]
+	\item 保护当前正在运行程序的现场   
+	\item 分析是何种中断，以便转去执行相应的中断处理程序
+	\item 执行相应的中断处理程序
+	\item 恢复被中断程序的现场
+\end{enumerate}
+中断是异步产生的，会随时打断应用程序的执行，且在操作系统的管理之下，应用程序感知不到中断的产生。所以操作系统需要保存被打断的应用程序的执行现场，处理具体的中断，然后恢复被打断的应用程序的执行现场，使得应用程序可以继续执行。 以ucore OS为例（lab5实验），产生一个中断XX后，操作系统的执行过程如下： vectorXX(vectors.S)--> \_\_alltraps(trapentry.S)-->trap(trap.c)-->trap\_dispatch(trap.c)-->-->……具体的中断处理-->\_\_trapret(trapentry.S) 通过查看上述函数的源码，可以对应到答案1-4。另外，需要注意，在ucore中，应用程序的执行现场其实保存在trapframe数据结构中。
+
+
+\item 下列程序工作在内核态的有\_\_\_\_(ABCD)
+\begin{enumerate}[A]
+	\item 系统调用的处理程序
+	\item 中断处理程序
+	\item 进程调度
+	\item 内存管理
+\end{enumerate}
+这里说的“程序”是一种指称，其实就是一些功能的代码实现。而1-4都是操作系统的主要功能，需要执行相关的特权指令，所以工作在内核态。 以ucore OS为例（lab5实验），系统调用的处理程序在kern/syscall目录下，中断处理程序在kern/trap目录下，进程调度在kern/schedule目录下，内存管理在kern/mm目录下
+\end{enumerate}
+
+\section{系统调用}
+\subsection{系统调用}
+\begin{itemize}
+	\item 操作系统服务的编程接口
+	\item 通常由高级语言编写
+	\item 程序访问通常是通过高层次的API接口而不是直接进行系统调用
+	\item 三种最常用的应用程序编程接口API
+	\begin{enumerate}
+		\item Win32 API
+		\item POSIX API
+		\item Java API
+	\end{enumerate}
+\end{itemize}
+\subsection{系统调用的实现}
+\begin{enumerate}
+	\item 每个系统调用对应一个系统调用号
+	\begin{itemize}
+		\item 系统调用接口根据系统调用号来维护表的索引
+	\end{itemize}
+\item 系统调用接口调用内核态中的系统调用功能实现，并返回系统调用的状态
+和结果
+\item 用户不需要知道系统调用的实现
+\begin{itemize}
+	\item 需要设置调用参数和返回结果
+	\item 操作系统接口的细节大部分都隐藏在应用编程接口后
+	\item 通过运行程序支持的库来管理
+\end{itemize}
+\end{enumerate}
+\subsection{系统调用和函数调用的不同处}
+\begin{enumerate}
+	\item 系统调用
+	\begin{itemize}
+		\item INT和IRET指令用于系统调用
+		\subitem 系统调用时，堆栈切换和特权级的转换
+	\end{itemize}
+\item 函数调用
+\begin{itemize}
+	\item CALL和RET用于常规调用
+	\subitem 常规调用时没有堆栈切换
+\end{itemize}
+\end{enumerate}
+\subsection{中断、异常和系统调用的开销}
+\begin{enumerate}
+	\item 超过函数调用
+	\item 中断、异常和系统调用
+	\subitem 引导机制
+	\subitem 建立内核堆栈
+	\subitem 验证参数
+	\subitem 内核态映射到用户态的地址空间：更新页面映射权限
+	\subitem 内核态独立地址空间：TLB
+\end{enumerate}
+\subsection{问题}
+\begin{enumerate}
+\item CPU执行操作系统代码的时候称为处理机处于（ C）
+\begin{enumerate}[A]
+	\item 自由态
+	\item 目态
+	\item 管态
+	\item 就绪态
+\end{enumerate}
+内核态又称为管态
+
+\item 下列选项中，会导致用户进程从用户态切换到内核态的操作是（B ） 1）整数除以0 2）sin()函数调用 3）read系统调用
+\begin{enumerate}[A]
+	\item 1、2
+	\item 1、3
+	\item 2、3
+	\item 1、2、3
+\end{enumerate}
+函数调用并不会切换到内核态，而除零操作引发中断，中断和系统调用都会切换到内核态进行相应处理。
+
+\item 系统调用的主要作用是（C）
+\begin{enumerate}[A]
+	\item 处理硬件问题
+	\item 应对软件异常
+	\item 给应用程序提供服务接口
+	\item 管理应用程序
+	
+\end{enumerate}
+应用程序一般无法直接访问硬件，也无法执行特权指令。所以，需要通过操作系统来间接完成相关的工作。而基于安全和可靠性的需求，应用程序运行在用户态，操作系统内核运行在内核态，导致应用程序无法通过函数调用来访问操作系统提供的各种服务，于是通过系统调用的方式就成了应用程序向OS发出请求并获得服务反馈的唯一通道和接口。 以ucore OS为例，在lab1的challenge练习中和lab5中，系统调用机制的初始化也是通过建立中断向量表来完成的（可查看lab1的challenge的答案中在trap.c中idt\_init函数的实现），中断向量表描述了但应用程序产生一个用于系统调用的中断号时，对应的中断服务例程的具体虚拟地址在哪里，即建立了系统调用的中断号和中断服务例程的对应关系。这样当应用程序发出类似 “int 0x80”这样的指令时（可查看lab1的challenge的答案中在init.c中lab1\_switch\_to\_kernel函数的实现），操作系统的中断服务例程会被调用，并完成相应的服务（可查看lab1的challenge的答案中在trap.c中trap\_dispatch函数有关“case T\_SWITCH\_TOK:”的实现）。
+
+
+\item 下列关于系统调用的说法错误的是（B）
+
+
+\begin{enumerate}[A]
+	\item 系统调用一般有对应的库函数
+	\item 应用程序可以不通过系统调用来直接获得操作系统的服务
+	\item 应用程序一般使用更高层的库函数而不是直接使用系统调用
+	\item 系统调用可能执行失败
+\end{enumerate}
+更合适的答案是2。根据对当前操作系统设计与实现的理解，系统调用是应用程序向操作系统发出服务请求并获得操作系统服务的唯一通道和结果。如果操作系统在执行系统调用服务时，产生了错误，就会导致系统调用执行失败。 以ucore OS为例，在用户态的应用程序（lab5,6,7,8中的应用程序）都是通过系统调用来获得操作系统的服务的。为了简化应用程序发出系统调用请求，ucore OS提供了用户态的更高层次的库函数（user/libs/ulib.[ch]和syscall.[ch]），简化了应用程序的编写。如果操作系统在执行系统调用服务时，产生了错误，就会导致系统调用执行失败。
+
+
+\item 以下关于系统调用和常规调用的说法中，错误的是（D）
+\begin{enumerate}[A]
+	\item 系统调用一般比常规函数调用的执行开销大
+	\item 系统调用需要切换堆栈
+	\item 系统调用可以引起特权级的变化
+	\item 常规函数调用和系统调用都在内核态执行
+\end{enumerate}
+系统调用相对常规函数调用执行开销要大，因为这会涉及到用户态栈和内核态栈的切换开销，特权级变化带来的开销，以及操作系统对用户态程序传来的参数安全性检查等开销。如果发出请求的请求方和应答请求的应答方都在内核态执行，则不用考虑安全问题了，效率还是需要的，直接用常规函数调用就够了。 以ucore OS为例，我们可以看到系统调用的开销在执行“int 0x80”和“iret”带来的用户态栈和内核态栈的切换开销，两种特权级切换带来的执行状态（关注 kern/trap/trap.h中的trapframe数据结构）的保存与恢复等（可参看 kern/trap/trapentry.S的\_\_alltraps和\_\_trapret的实现）。而函数调用使用的是"call"和“ret”指令，只有一个栈，不涉及特权级转变带来的各种开销。如要了解call, ret, int和iret指令的具体功能和实现，可查看“英特尔 64 和 iA-32 架构软件开发人员手册卷 2a's,指令集参考（A-M）”和“英特尔64 和 iA-32 架构软件开发人员手册卷 2B’ s,指令集参考（N-Z）”一书中对这些指令的叙述。
+\end{enumerate}
+
+\section{系统调用示例}
+\subsection{例子-文件复制}
+\textbf{文件复制过程中的系统调用序列}
+\begin{lstlisting}
+获取输入文件名
+	显示提示
+	等待键盘输入
+获取输出文件名
+	显示提示
+	等待键盘输入
+打开输入文件
+	文件不存在，退出
+创建输出文件
+	如果文件存在，退出
+循环
+	读取输入文件
+	写入输出文件
+直到读取结束
+关闭输出文件
+屏幕显示提示完成
+正常退出
+\end{lstlisting}
+涉及的系统调用
+\begin{lstlisting}
+#define SYS_write 5
+#define SYS_read 6
+#define SYS_close 7
+#define SYS_open 10
+\end{lstlisting}
+在ucore中库函数read()的功能是读文件
+\par usr/libs/file.h:int read(int fd, void * buf, int length)\\
+库函数read()的参数和返回值
+\begin{itemize}
+	\item int fd 文件句柄
+	\item void * buf 数据缓冲区指针
+	\item int length 数据缓冲区长度
+	\item int return\_value 返回读出数据长度
+\end{itemize}
+库函数read()使用示例\\
+int sfs\_filetest1.c: ret = read(fd, data, len)
+\subsection{系统调用read的实现}
+\begin{enumerate}
+	\item kern/trap/trapentry.S: alltraps()
+	\item kern/trap/trap.c: trap()
+	\subitem tf->trapno == T\_SYSCALL
+	\item kern/syscall/syscall.c: syscall()
+	\subitem tf->tf\_regs.reg\_eax == SYS\_read
+	\item kern/syscall/syscall.c: sys\_read()
+	\subitem 从tf->sp 获取fd, buf, length
+	\item kern/fs/sysfile.c: sysfile\_read()
+	\subitem 读取文件
+	\item kern/trap/trapentry.S: trapret()
+\end{enumerate}

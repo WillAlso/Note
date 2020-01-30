@@ -1,0 +1,30 @@
+\chapter{servlet容器}
+servlet容器是用来处理请求servlet资源，并为Web客户端填充response对象的模块。
+Tomcat中有4种容器：Engine、Host、Context和Wrapper。
+\section{Container接口}
+Tomcat的servlet容器必须实现org.apache.catalina.Container接口，需要将servlet容器的实例作为参数传入连接器的setContainer()方法中，以此使用invoke()。
+\par 4种容器：
+\begin{itemize}
+	\item Engine：表示整个Catania servlet引擎；
+	\item Host：表示包含一个或多个Context容器的虚拟主机；
+	\item Context：表示一个Web应用程序，一个Context可以有多个Wrapper；
+	\item Wrapper：表示一个独立的servlet。
+\end{itemize}
+\par 4个接口的标准实现分别是StandardEngine类、StandardHost类、StandardContext类和StandardWrapper类，均在org.apache.catalina.core包内。
+\par 一个容器可以有0个或多个低层级的子容器。一般情况下，一个Context会有
+一个或多个Wrapper实例，一个Host实例会有0个或多个Context实例，Wrapper处于最底层，不在包含子容器。
+\par 可以调用Container接口的addChild()方法向某容器中添加子容器。
+\par public void addChild(Container child);
+\par Container接口提供findChild()方法和findChildren()方法来查找子容器和所有子容器的某个容器。
+\begin{lstlisting}
+public Container findChild(String name);
+public Container[] findChildren();
+\end{lstlisting}
+\par Container接口的设计满足：在部署应用时，Tomcat可以通过编辑配置文件
+(server.xml)来决定使用哪种容器。
+
+\section{管道任务}
+相关接口：Pipeline、Value、ValueContext和Contained。
+\par 管道包含该servlet将要调用的任务，一个阀表示一个具体的执行任务。
+\par 在servlet容器中，有一个基础阀，可以添加任意数量阀，阀的数量指的是额外添加阀数量，基础阀总是最后一个执行。
+\par 一个servlet容器可以有一条管道，当调用了容器的invoke()，容器会将处理工作交由阀继续执行任务，直到所有的阀都处理完成。
